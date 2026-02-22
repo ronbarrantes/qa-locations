@@ -17,6 +17,7 @@ const {
 } = logic;
 
 const STORAGE_KEY = 'qa-locations-settings-v1';
+const INPUTS_STORAGE_KEY = 'qa-locations-inputs-v1';
 const DEFAULT_SETTINGS = {
   groups: [
     { title: 'pallets', values: ['a', 'b', 'c', 'lud', 'prm', 'slp'] },
@@ -57,6 +58,43 @@ const columnGapInput = document.getElementById('column-gap');
 let settingsState = loadSettings();
 let groupsSortable = null;
 
+function getStorage() {
+  if (window.chrome?.storage?.local) {
+    return {
+      async get(key) {
+        const result = await window.chrome.storage.local.get(key);
+        return result?.[key];
+      },
+      async set(key, value) {
+        await window.chrome.storage.local.set({ [key]: value });
+      },
+      async remove(key) {
+        await window.chrome.storage.local.remove(key);
+      },
+    };
+  }
+  return {
+    async get(key) {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return undefined;
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        console.warn('Failed to parse stored value.', err);
+        return undefined;
+      }
+    },
+    async set(key, value) {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    },
+    async remove(key) {
+      window.localStorage.removeItem(key);
+    },
+  };
+}
+
+const storage = getStorage();
+
 function showView(viewKey) {
   Object.values(views).forEach((view) => view.classList.add('hidden'));
   views[viewKey].classList.remove('hidden');
@@ -77,6 +115,24 @@ function saveSettings(config) {
   const normalized = normalizeConfig(config);
   settingsState = normalized;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+}
+
+async function loadInputs() {
+  const saved = await storage.get(INPUTS_STORAGE_KEY);
+  if (!saved || typeof saved !== 'object') return;
+  if (typeof saved.locations === 'string') locationsInput.value = saved.locations;
+  if (typeof saved.priorities === 'string') prioritiesInput.value = saved.priorities;
+}
+
+function saveInputs() {
+  storage.set(INPUTS_STORAGE_KEY, {
+    locations: locationsInput.value,
+    priorities: prioritiesInput.value,
+  });
+}
+
+function clearInputsStorage() {
+  storage.remove(INPUTS_STORAGE_KEY);
 }
 
 function renderTable(matrix, prioritySet) {
@@ -150,6 +206,7 @@ function createArrangement() {
 function resetForm() {
   locationsInput.value = '';
   prioritiesInput.value = '';
+  clearInputsStorage();
 }
 
 function openSettings() {
@@ -270,6 +327,8 @@ function resetToDefaults() {
 
 createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
+locationsInput.addEventListener('input', saveInputs);
+prioritiesInput.addEventListener('input', saveInputs);
 openSettingsBtn.addEventListener('click', openSettings);
 closeSettingsBtn.addEventListener('click', closeSettings);
 settingsBackBtn.addEventListener('click', closeSettings);
@@ -278,3 +337,5 @@ settingsResetBtn.addEventListener('click', resetSettings);
 settingsDefaultsBtn.addEventListener('click', resetToDefaults);
 addGroupBtn.addEventListener('click', () => addGroupToUI());
 resultBackBtn.addEventListener('click', () => showView('main'));
+
+loadInputs();
