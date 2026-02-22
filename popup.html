@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Locations MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>QR Locations</h1>
+        <button id="settings-open" class="icon-btn" type="button" title="Settings">⚙️</button>
+      </header>
+
+      <section id="form-view" class="card">
+        <label for="locations">Locations</label>
+        <textarea id="locations" placeholder="e.g. SS4:HV253.A, SS4:HV253.B"></textarea>
+
+        <label for="priorities">Priorities</label>
+        <textarea id="priorities" placeholder="e.g. SS4:HV253.A"></textarea>
+
+        <div class="buttons">
+          <button id="create" type="button">Create</button>
+          <button id="reset" type="button" class="secondary">Reset</button>
+        </div>
+      </section>
+
+      <section id="result-view" class="card hidden" aria-live="polite">
+        <h2>Arrangement</h2>
+        <p id="summary"></p>
+        <div id="tables-container"></div>
+
+        <h3>Sorted priorities</h3>
+        <ul id="priority-list"></ul>
+
+        <button id="back" type="button" class="secondary">Back</button>
+      </section>
+    </main>
+
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Rules Settings</h2>
+          <button id="settings-close" class="icon-btn" type="button">✕</button>
+        </div>
+
+        <div class="settings-section">
+          <h3>Groups</h3>
+          <div id="groups-list" class="groups-list"></div>
+          <button id="add-group" class="secondary" type="button">Add Group</button>
+        </div>
+
+        <div class="settings-grid">
+          <label for="max-rows">Max Rows</label>
+          <input id="max-rows" type="number" min="1" value="20" />
+
+          <label for="column-gap">Column Gap</label>
+          <input id="column-gap" type="number" min="0" value="1" />
+        </div>
+
+        <div class="buttons">
+          <button id="defaults" class="secondary" type="button">Defaults</button>
+          <button id="save-settings" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <template id="group-row-template">
+      <div class="group-item" draggable="true">
+        <span class="drag-handle" title="Drag to reorder">↕</span>
+        <input class="group-title-input" type="text" placeholder="Group title" />
+        <input class="group-values-input" type="text" placeholder="a, b, c" />
+        <button class="remove-group secondary" type="button">Remove</button>
+      </div>
+    </template>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
