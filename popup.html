@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QR Locations MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>QR Locations</h1>
+
+      <section id="form-view" class="card">
+        <label for="locations">Locations</label>
+        <textarea id="locations" placeholder="e.g. SS4:HV253.A, SS4:HV253.B"></textarea>
+
+        <label for="priorities">Priorities</label>
+        <textarea id="priorities" placeholder="e.g. SS4:HV253.A"></textarea>
+
+        <details>
+          <summary>Arrangement settings</summary>
+          <div class="settings-grid">
+            <label for="columns">Columns</label>
+            <input id="columns" type="number" min="1" value="4" />
+
+            <label for="fill-mode">Fill mode</label>
+            <select id="fill-mode">
+              <option value="row">Row-first</option>
+              <option value="column">Column-first</option>
+            </select>
+          </div>
+        </details>
+
+        <div class="buttons">
+          <button id="create" type="button">Create</button>
+          <button id="reset" type="button" class="secondary">Reset</button>
+        </div>
+      </section>
+
+      <section id="result-view" class="card hidden" aria-live="polite">
+        <h2>Arrangement</h2>
+        <p id="summary"></p>
+        <div id="table-container"></div>
+
+        <h3>Sorted priorities</h3>
+        <ul id="priority-list"></ul>
+
+        <button id="back" type="button" class="secondary">Back</button>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
