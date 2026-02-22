@@ -1,0 +1,103 @@
+:root {
+  color-scheme: light dark;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 380px;
+}
+
+main {
+  padding: 12px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 10px;
+}
+
+.card {
+  border: 1px solid #bdbdbd;
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(127, 127, 127, 0.07);
+}
+
+label {
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+textarea,
+input,
+select,
+button {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #9b9b9b;
+}
+
+textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.settings-grid {
+  margin-top: 8px;
+}
+
+.buttons {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+button {
+  background: #0f62fe;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #5c5c5c;
+}
+
+button:hover {
+  filter: brightness(0.95);
+}
+
+.hidden {
+  display: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+td {
+  border: 1px solid #8f8f8f;
+  padding: 6px;
+  text-align: center;
+  font-family: monospace;
+}
+
+td.priority {
+  background: #ffd966;
+  color: #000;
+  font-weight: 700;
+}
+
+#priority-list {
+  margin: 0;
+  padding-left: 18px;
+}
