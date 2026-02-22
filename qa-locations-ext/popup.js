@@ -54,6 +54,32 @@ const groupsList = document.getElementById('groups-list');
 const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
 
+
+const themeToggleBtn = document.getElementById('theme-toggle');
+const THEME_STORAGE_KEY = 'qa-locations-theme';
+
+function getPreferredTheme() {
+  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark-theme', isDark);
+  if (themeToggleBtn) {
+    themeToggleBtn.textContent = isDark ? '☀️' : '🌙';
+    themeToggleBtn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  }
+}
+
+function toggleTheme() {
+  const nextTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
+  window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  applyTheme(nextTheme);
+}
+
+
 let settingsState = loadSettings();
 let groupsSortable = null;
 
@@ -270,6 +296,9 @@ function resetToDefaults() {
 
 createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
+applyTheme(getPreferredTheme());
+themeToggleBtn?.addEventListener('click', toggleTheme);
+
 openSettingsBtn.addEventListener('click', openSettings);
 closeSettingsBtn.addEventListener('click', closeSettings);
 settingsBackBtn.addEventListener('click', closeSettings);

@@ -27,9 +27,6 @@ Output:
 
 - `dist/qr-locations-mvp.zip` (generated artifact; not committed to git)
 
-## Tests
+## Reference assets
 
-```bash
-npm install
-npm test
-```
+- Legacy and non-extension assets are stored at the repository root under `legacy/`.
