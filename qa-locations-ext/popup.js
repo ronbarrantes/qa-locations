@@ -591,8 +591,27 @@ holdViewToggle?.addEventListener('change', (event) => {
   setHoldViewEnabled(Boolean(event.target.checked));
 });
 
+
+function handlePopupQueryActions() {
+  const params = new URLSearchParams(window.location.search);
+  const shouldAutoCreate = params.get('autocreate') === '1';
+  const requestedView = params.get('view');
+
+  if (requestedView === 'result' || shouldAutoCreate) {
+    createArrangement();
+    return true;
+  }
+
+  return false;
+}
+
 async function init() {
   await loadInputs();
+
+  if (handlePopupQueryActions()) {
+    return;
+  }
+
   holdViewEnabled = await loadHoldViewEnabled();
   if (holdViewToggle) {
     holdViewToggle.checked = holdViewEnabled;
