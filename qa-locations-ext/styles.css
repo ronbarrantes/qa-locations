@@ -1,7 +1,7 @@
 :root {
-  color-scheme: light;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  background-color: #f7f4ef;
+  color-scheme: dark;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background-color: #0d1017;
 }
 
 * {
@@ -11,8 +11,11 @@
 body {
   margin: 0;
   min-width: 380px;
-  background: radial-gradient(circle at top, #f8efe0 0%, #f3f6f2 55%, #eef2f7 100%);
-  color: #1e1e1e;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(86, 132, 255, 0.2) 0%, rgba(86, 132, 255, 0) 45%),
+    radial-gradient(circle at 90% 0%, rgba(0, 209, 178, 0.16) 0%, rgba(0, 209, 178, 0) 40%),
+    linear-gradient(180deg, #10151f 0%, #0b0f17 100%);
+  color: #e7ebf3;
 }
 
 main {
@@ -33,11 +36,12 @@ h3 {
 }
 
 .card {
-  border: 1px solid #b8b2a4;
-  border-radius: 12px;
+  border: 1px solid #2b3447;
+  border-radius: 14px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 8px 20px rgba(50, 50, 50, 0.08);
+  background: linear-gradient(180deg, rgba(26, 32, 46, 0.94) 0%, rgba(20, 24, 36, 0.94) 100%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
 }
 
 .section-header {
@@ -50,7 +54,7 @@ h3 {
 
 .helper {
   margin: 0 0 12px;
-  color: #5a5a5a;
+  color: #a5afc2;
   font-size: 0.9rem;
 }
 
@@ -78,8 +82,8 @@ button {
   width: 100%;
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid #b1a9a0;
-  background: #fff;
+  border: 1px solid #38445d;
+  background: #151b28;
   color: inherit;
   font-family: inherit;
 }
@@ -87,6 +91,20 @@ button {
 textarea {
   min-height: 84px;
   resize: vertical;
+  line-height: 1.35;
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: #7f8aa3;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #4d83ff;
+  outline-offset: 1px;
+  border-color: #4d83ff;
 }
 
 .settings-grid {
@@ -119,34 +137,40 @@ textarea {
 }
 
 button {
-  background: #1f5d99;
+  background: linear-gradient(180deg, #3e79ff 0%, #245ae0 100%);
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  border: none;
+  border: 1px solid #2f63de;
 }
 
 button.secondary {
-  background: #4a4a4a;
+  background: linear-gradient(180deg, #2c3342 0%, #202634 100%);
+  border-color: #3b455b;
 }
 
 button:hover {
-  filter: brightness(0.95);
+  filter: brightness(1.05);
+}
+
+button:active {
+  transform: translateY(1px);
 }
 
 button.icon-btn {
   width: auto;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #efe5d3;
-  color: #1f1f1f;
-  border: 1px solid #d0c6b4;
+  background: #232b39;
+  color: #e6ebf5;
+  border: 1px solid #394457;
   font-weight: 600;
 }
 
 button.icon-btn.remove-group {
-  background: #f7d6d6;
-  border-color: #e0b1b1;
+  background: #3a2027;
+  border-color: #68414b;
+  color: #ffd7dc;
 }
 
 .hidden {
@@ -166,20 +190,55 @@ button.icon-btn.remove-group {
   align-items: center;
   padding: 8px;
   border-radius: 10px;
-  border: 1px solid #d3c8ba;
-  background: #fff8ec;
+  border: 1px solid #30394d;
+  background: #121a27;
 }
 
 button.icon-btn.move-group {
-  background: #e7efe1;
-  border-color: #b9c9ab;
+  background: #1d3130;
+  border-color: #355a58;
+  color: #d5f2ef;
 }
 
 .group-move-controls {
   display: grid;
-  gap: 6px;
+  grid-template-rows: 1fr 1fr;
+  gap: 0;
+  border: 1px solid #355a58;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #182725;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.group-move-controls .icon-btn.move-group {
+  width: 34px;
+  min-width: 34px;
+  height: 28px;
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  color: #d5f2ef;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.group-move-controls .icon-btn.move-group + .icon-btn.move-group {
+  border-top: 1px solid #355a58;
+}
+
+.group-move-controls .icon-btn.move-group:hover {
+  background: rgba(82, 168, 160, 0.18);
+  filter: none;
+}
+
+.group-move-controls .icon-btn.move-group:active {
+  background: rgba(82, 168, 160, 0.26);
+  transform: none;
+}
 
 .group-fields {
   display: grid;
@@ -188,6 +247,7 @@ button.icon-btn.move-group {
 
 .group-title-input {
   font-weight: 700;
+  background: #1a2130;
 }
 
 table {
