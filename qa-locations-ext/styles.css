@@ -489,7 +489,7 @@ table {
 
 th,
 td {
-  border: 1px solid #8f8f8f;
+  border: 1px solid #d3d3d3;
   padding: 6px;
   text-align: center;
   font-family: Arial, sans-serif;
@@ -507,11 +507,11 @@ th {
 th.gap,
 td.gap {
   background: #ffffff;
-  border: 1px solid #8f8f8f;
+  border: 1px solid #d3d3d3;
 }
 
 td.priority {
-  background: #ffd966;
+  background: #fff36d;
   color: #000;
   font-weight: 400;
 }
