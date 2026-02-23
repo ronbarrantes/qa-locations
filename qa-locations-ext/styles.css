@@ -54,6 +54,16 @@ h3 {
   font-size: 0.9rem;
 }
 
+.inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.input-group label {
+  margin-top: 0;
+}
+
 label {
   display: block;
   margin-top: 10px;
