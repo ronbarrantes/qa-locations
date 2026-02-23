@@ -1,4 +1,4 @@
-# QR Locations extension
+# QA Locations extension
 
 The goal will be to create an extension that contains part of the functionality of the qa-script project inside the legacy directory
 and a similar deployment strategy as the qr-ext project

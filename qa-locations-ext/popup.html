@@ -3,19 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QR Locations MVP</title>
+    <title>QA Locations MVP</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main>
       <header class="page-header">
-        <h1>QR Locations</h1>
+        <h1>QA Locations</h1>
       </header>
 
       <section id="main-view" class="card">
         <div class="section-header">
           <h2>Input</h2>
-          <button id="open-settings" type="button" class="icon-btn" title="Settings">
+          <button
+            id="open-settings"
+            type="button"
+            class="icon-btn"
+            title="Settings"
+          >
             ⚙️
           </button>
         </div>
@@ -23,23 +28,37 @@
         <div class="inputs-grid">
           <div class="input-group">
             <div class="input-actions">
-              <button id="import-locations-btn" type="button" class="secondary import-btn">
+              <button
+                id="import-locations-btn"
+                type="button"
+                class="secondary import-btn"
+              >
                 Import Locations (CSV)
               </button>
               <p class="field-status">Opens importer page</p>
             </div>
             <label for="locations">Locations</label>
-            <textarea id="locations" placeholder="Paste one location per line"></textarea>
+            <textarea
+              id="locations"
+              placeholder="Paste one location per line"
+            ></textarea>
           </div>
           <div class="input-group">
             <div class="input-actions">
-              <button id="import-priorities-btn" type="button" class="secondary import-btn">
+              <button
+                id="import-priorities-btn"
+                type="button"
+                class="secondary import-btn"
+              >
                 Import Priorities (XLSX)
               </button>
               <p class="field-status">Opens importer page</p>
             </div>
             <label for="priorities">Priorities</label>
-            <textarea id="priorities" placeholder="Paste one priority per line"></textarea>
+            <textarea
+              id="priorities"
+              placeholder="Paste one priority per line"
+            ></textarea>
           </div>
         </div>
 
@@ -52,14 +71,25 @@
       <section id="settings-view" class="card hidden" aria-live="polite">
         <div class="section-header">
           <h2>Settings</h2>
-          <button id="close-settings" type="button" class="icon-btn" title="Back to input">✕</button>
+          <button
+            id="close-settings"
+            type="button"
+            class="icon-btn"
+            title="Back to input"
+          >
+            ✕
+          </button>
         </div>
 
-        <p class="helper">Create columns, rename titles, and set the letter mappings.</p>
+        <p class="helper">
+          Create columns, rename titles, and set the letter mappings.
+        </p>
 
         <div id="groups-list" class="groups-list"></div>
 
-        <button id="add-group" type="button" class="secondary">Add Column</button>
+        <button id="add-group" type="button" class="secondary">
+          Add Column
+        </button>
 
         <div class="settings-grid">
           <div>
@@ -80,7 +110,9 @@
         </div>
 
         <div class="buttons">
-          <button id="settings-reset" type="button" class="secondary">Reset</button>
+          <button id="settings-reset" type="button" class="secondary">
+            Reset
+          </button>
           <button id="settings-save" type="button">Save</button>
         </div>
       </section>
@@ -89,14 +121,37 @@
         <div class="section-header">
           <h2>Arrangement</h2>
           <div class="header-actions">
-            <button id="copy-table-image" type="button" class="secondary compact-btn">Copy PNG</button>
-            <button id="save-table-image" type="button" class="secondary compact-btn">Save PNG</button>
-            <button id="result-back" type="button" class="icon-btn" title="Back to input">↩</button>
+            <button
+              id="copy-table-image"
+              type="button"
+              class="secondary compact-btn"
+            >
+              Copy PNG
+            </button>
+            <button
+              id="save-table-image"
+              type="button"
+              class="secondary compact-btn"
+            >
+              Save PNG
+            </button>
+            <button
+              id="result-back"
+              type="button"
+              class="icon-btn"
+              title="Back to input"
+            >
+              ↩
+            </button>
           </div>
         </div>
 
         <p id="summary" class="helper"></p>
-        <p id="result-action-status" class="field-status" aria-live="polite"></p>
+        <p
+          id="result-action-status"
+          class="field-status"
+          aria-live="polite"
+        ></p>
         <div id="table-container"></div>
       </section>
     </main>
