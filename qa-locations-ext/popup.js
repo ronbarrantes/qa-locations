@@ -49,7 +49,6 @@ const closeSettingsBtn = document.getElementById('close-settings');
 const settingsBackBtn = document.getElementById('settings-back');
 const settingsSaveBtn = document.getElementById('settings-save');
 const settingsResetBtn = document.getElementById('settings-reset');
-const settingsDefaultsBtn = document.getElementById('settings-defaults');
 const addGroupBtn = document.getElementById('add-group');
 const resultBackBtn = document.getElementById('result-back');
 
@@ -370,10 +369,6 @@ function resetSettings() {
   populateSettingsUI(settingsState);
 }
 
-function resetToDefaults() {
-  populateSettingsUI(normalizeConfig(DEFAULT_SETTINGS));
-}
-
 createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
 locationsInput.addEventListener('input', saveInputs);
@@ -383,7 +378,6 @@ closeSettingsBtn.addEventListener('click', closeSettings);
 settingsBackBtn.addEventListener('click', closeSettings);
 settingsSaveBtn.addEventListener('click', saveSettingsFromUI);
 settingsResetBtn.addEventListener('click', resetSettings);
-settingsDefaultsBtn.addEventListener('click', resetToDefaults);
 addGroupBtn.addEventListener('click', () => addGroupToUI());
 resultBackBtn.addEventListener('click', () => showView('main'));
 
@@ -401,6 +395,8 @@ async function init() {
     const lastView = await loadLastViewKey();
     if (lastView === 'result') {
       createArrangement();
+    } else if (lastView === 'settings') {
+      openSettings();
     } else {
       showView(lastView);
     }
