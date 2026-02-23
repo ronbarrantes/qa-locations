@@ -97,6 +97,8 @@ function getStorage() {
 
 const storage = getStorage();
 
+applyStaticIcons();
+
 function showView(viewKey) {
   Object.values(views).forEach((view) => view.classList.add('hidden'));
   views[viewKey].classList.remove('hidden');
@@ -293,7 +295,7 @@ function addGroupToUI(title = '', values = []) {
   moveUpBtn.type = 'button';
   moveUpBtn.className = 'icon-btn move-group';
   moveUpBtn.title = 'Move up';
-  moveUpBtn.textContent = '↑';
+  moveUpBtn.appendChild(createChevronIcon('up'));
   moveUpBtn.addEventListener('click', () => {
     const prev = groupItem.previousElementSibling;
     if (prev) groupsList.insertBefore(groupItem, prev);
@@ -303,7 +305,7 @@ function addGroupToUI(title = '', values = []) {
   moveDownBtn.type = 'button';
   moveDownBtn.className = 'icon-btn move-group';
   moveDownBtn.title = 'Move down';
-  moveDownBtn.textContent = '↓';
+  moveDownBtn.appendChild(createChevronIcon('down'));
   moveDownBtn.addEventListener('click', () => {
     const next = groupItem.nextElementSibling;
     if (next) groupsList.insertBefore(next, groupItem);
@@ -313,7 +315,7 @@ function addGroupToUI(title = '', values = []) {
   removeBtn.type = 'button';
   removeBtn.className = 'icon-btn remove-group';
   removeBtn.title = 'Remove column';
-  removeBtn.textContent = '✕';
+  removeBtn.appendChild(createXIcon());
   removeBtn.addEventListener('click', () => {
     groupItem.remove();
   });
@@ -326,6 +328,107 @@ function addGroupToUI(title = '', values = []) {
   groupItem.appendChild(removeBtn);
 
   groupsList.appendChild(groupItem);
+}
+
+function createChevronIcon(direction) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('move-icon');
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-linecap', 'butt');
+  path.setAttribute('stroke-linejoin', 'miter');
+  path.setAttribute('stroke-width', '2.25');
+  path.setAttribute(
+    'd',
+    direction === 'up' ? 'M4.5 15L12 7.5L19.5 15' : 'M4.5 9L12 16.5L19.5 9',
+  );
+
+  svg.appendChild(path);
+  return svg;
+}
+
+function createXIcon(className = 'close-icon') {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add(className);
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('d', 'M18 6L6 18M6 6l12 12');
+
+  svg.appendChild(path);
+  return svg;
+}
+
+function createArrowLeftIcon() {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('toolbar-icon');
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute('d', 'M19 12H5M12 19l-7-7 7-7');
+  svg.appendChild(path);
+  return svg;
+}
+
+function createGearIcon() {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.classList.add('toolbar-icon');
+
+  const circle = document.createElementNS(svgNS, 'circle');
+  circle.setAttribute('cx', '12');
+  circle.setAttribute('cy', '12');
+  circle.setAttribute('r', '3');
+  circle.setAttribute('fill', 'none');
+  circle.setAttribute('stroke', 'currentColor');
+  circle.setAttribute('stroke-width', '2');
+  svg.appendChild(circle);
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'currentColor');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-width', '2');
+  path.setAttribute(
+    'd',
+    'M12 2.75v2.5M12 18.75v2.5M2.75 12h2.5M18.75 12h2.5M5.45 5.45l1.8 1.8M16.75 16.75l1.8 1.8M18.55 5.45l-1.8 1.8M7.25 16.75l-1.8 1.8',
+  );
+  svg.appendChild(path);
+  return svg;
+}
+
+function applyStaticIcons() {
+  if (openSettingsBtn) {
+    openSettingsBtn.replaceChildren(createGearIcon());
+  }
+  if (closeSettingsBtn) {
+    closeSettingsBtn.replaceChildren(createXIcon('toolbar-icon'));
+  }
+  if (resultBackBtn) {
+    resultBackBtn.replaceChildren(createArrowLeftIcon());
+  }
 }
 
 function getSettingsFromUI() {
