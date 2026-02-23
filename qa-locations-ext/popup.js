@@ -56,7 +56,6 @@ const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
 
 let settingsState = loadSettings();
-let groupsSortable = null;
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -147,11 +146,20 @@ function renderTable(matrix, prioritySet) {
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
 
-  matrix.headers.forEach((title) => {
+  matrix.groupTitles.forEach((title, index) => {
     const th = document.createElement('th');
+    const colSpan = matrix.groupColumns[index] || 1;
     th.textContent = title;
-    if (!title) th.classList.add('gap');
+    th.colSpan = colSpan;
     headerRow.appendChild(th);
+
+    if (index < matrix.groupTitles.length - 1 && matrix.groupColumns[index] !== undefined) {
+      for (let g = 0; g < settingsState.columnGap; g += 1) {
+        const gap = document.createElement('th');
+        gap.classList.add('gap');
+        headerRow.appendChild(gap);
+      }
+    }
   });
 
   thead.appendChild(headerRow);
@@ -211,7 +219,6 @@ function resetForm() {
 
 function openSettings() {
   populateSettingsUI(settingsState);
-  initGroupsListDragDrop();
   showView('settings');
 }
 
@@ -232,11 +239,6 @@ function addGroupToUI(title = '', values = []) {
   const groupItem = document.createElement('div');
   groupItem.className = 'group-item';
 
-  const dragHandle = document.createElement('div');
-  dragHandle.className = 'drag-handle';
-  dragHandle.title = 'Drag to reorder';
-  dragHandle.textContent = '⋮⋮';
-
   const fields = document.createElement('div');
   fields.className = 'group-fields';
 
@@ -255,6 +257,29 @@ function addGroupToUI(title = '', values = []) {
   fields.appendChild(titleInput);
   fields.appendChild(valuesInput);
 
+  const moveControls = document.createElement('div');
+  moveControls.className = 'group-move-controls';
+
+  const moveUpBtn = document.createElement('button');
+  moveUpBtn.type = 'button';
+  moveUpBtn.className = 'icon-btn move-group';
+  moveUpBtn.title = 'Move up';
+  moveUpBtn.textContent = '↑';
+  moveUpBtn.addEventListener('click', () => {
+    const prev = groupItem.previousElementSibling;
+    if (prev) groupsList.insertBefore(groupItem, prev);
+  });
+
+  const moveDownBtn = document.createElement('button');
+  moveDownBtn.type = 'button';
+  moveDownBtn.className = 'icon-btn move-group';
+  moveDownBtn.title = 'Move down';
+  moveDownBtn.textContent = '↓';
+  moveDownBtn.addEventListener('click', () => {
+    const next = groupItem.nextElementSibling;
+    if (next) groupsList.insertBefore(next, groupItem);
+  });
+
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'icon-btn remove-group';
@@ -264,20 +289,14 @@ function addGroupToUI(title = '', values = []) {
     groupItem.remove();
   });
 
-  groupItem.appendChild(dragHandle);
+  moveControls.appendChild(moveUpBtn);
+  moveControls.appendChild(moveDownBtn);
+
+  groupItem.appendChild(moveControls);
   groupItem.appendChild(fields);
   groupItem.appendChild(removeBtn);
 
   groupsList.appendChild(groupItem);
-}
-
-function initGroupsListDragDrop() {
-  if (groupsSortable || typeof Sortable === 'undefined') return;
-  groupsSortable = Sortable.create(groupsList, {
-    animation: 150,
-    handle: '.drag-handle',
-    draggable: '.group-item',
-  });
 }
 
 function getSettingsFromUI() {

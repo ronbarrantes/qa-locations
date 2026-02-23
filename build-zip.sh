@@ -10,6 +10,6 @@ mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_FILE"
 
 cd "$EXT_DIR"
-zip -r "$OUTPUT_FILE" manifest.json popup.html popup.js logic.js styles.css sortable.min.js >/dev/null
+zip -r "$OUTPUT_FILE" manifest.json popup.html popup.js logic.js styles.css >/dev/null
 
 echo "Created $OUTPUT_FILE"

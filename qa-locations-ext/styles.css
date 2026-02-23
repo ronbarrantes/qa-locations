@@ -145,15 +145,16 @@ button.icon-btn.remove-group {
   background: #fff8ec;
 }
 
-.drag-handle {
-  cursor: grab;
-  font-size: 1.1rem;
-  padding: 6px;
-  border-radius: 8px;
-  background: #f1e3d0;
-  border: 1px dashed #c7b79f;
-  color: #6a5232;
+button.icon-btn.move-group {
+  background: #e7efe1;
+  border-color: #b9c9ab;
 }
+
+.group-move-controls {
+  display: grid;
+  gap: 6px;
+}
+
 
 .group-fields {
   display: grid;
