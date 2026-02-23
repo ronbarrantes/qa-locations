@@ -20,7 +20,6 @@ const prioritiesPreview = document.getElementById('priorities-preview');
 const locationsStatus = document.getElementById('locations-status');
 const prioritiesStatus = document.getElementById('priorities-status');
 const closeImportBtn = document.getElementById('close-import');
-const createFromImportBtn = document.getElementById('create-from-import');
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -192,15 +191,6 @@ function focusRequestedTarget() {
   }
 }
 
-function openResultView() {
-  const query = new URLSearchParams({
-    view: 'result',
-    autocreate: '1',
-  });
-  const url = `${chrome.runtime.getURL('popup.html')}?${query.toString()}`;
-  window.open(url, '_blank');
-}
-
 pickLocationsBtn?.addEventListener('click', () => {
   setStatus('locations', 'Choose a CSV file...');
   openPicker(locationsFileInput);
@@ -224,10 +214,6 @@ prioritiesFileInput?.addEventListener('change', async (event) => {
 });
 
 closeImportBtn?.addEventListener('click', () => window.close());
-createFromImportBtn?.addEventListener('click', () => {
-  openResultView();
-  window.close();
-});
 
 async function init() {
   applyStaticIcons();

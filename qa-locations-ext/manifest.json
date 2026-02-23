@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "QR Locations MVP",
+  "name": "QA Locations MVP",
+  "author": "Ron Barrantes <ronbarrantes@gmail.com>",
   "description": "Create a quick locations arrangement table with priorities highlighting.",
   "version": "0.1.0",
   "permissions": ["clipboardWrite"],
@@ -11,7 +12,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "QR Locations",
+    "default_title": "QA Locations",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"

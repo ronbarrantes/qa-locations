@@ -1,4 +1,4 @@
-# QR Locations MVP Extension
+# QA Locations MVP Extension
 
 MVP browser extension based on `PLAN.md`:
 
@@ -25,7 +25,7 @@ MVP browser extension based on `PLAN.md`:
 
 Output:
 
-- `dist/qr-locations-mvp.zip` (generated artifact; not committed to git)
+- `dist/qa-locations-mvp.zip` (generated artifact; not committed to git)
 
 ## Tests
 
