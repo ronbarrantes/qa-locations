@@ -101,6 +101,12 @@ h2 {
   margin-bottom: 10px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 #settings-view .section-header {
   position: sticky;
   top: 0;
@@ -316,6 +322,13 @@ button:hover {
 
 button.secondary:hover {
   background: var(--secondary-hover);
+}
+
+button.compact-btn {
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
 }
 
 button:active {

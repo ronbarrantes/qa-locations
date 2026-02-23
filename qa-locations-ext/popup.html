@@ -88,15 +88,21 @@
       <section id="result-view" class="card hidden" aria-live="polite">
         <div class="section-header">
           <h2>Arrangement</h2>
-          <button id="result-back" type="button" class="icon-btn" title="Back to input">↩</button>
+          <div class="header-actions">
+            <button id="copy-table-image" type="button" class="secondary compact-btn">Copy PNG</button>
+            <button id="save-table-image" type="button" class="secondary compact-btn">Save PNG</button>
+            <button id="result-back" type="button" class="icon-btn" title="Back to input">↩</button>
+          </div>
         </div>
 
         <p id="summary" class="helper"></p>
+        <p id="result-action-status" class="field-status" aria-live="polite"></p>
         <div id="table-container"></div>
       </section>
     </main>
 
     <script src="logic.js"></script>
+    <script src="vendor/html2canvas.min.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

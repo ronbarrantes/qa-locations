@@ -3,6 +3,7 @@
   "name": "QR Locations MVP",
   "description": "Create a quick locations arrangement table with priorities highlighting.",
   "version": "0.1.0",
+  "permissions": ["clipboardWrite"],
   "action": {
     "default_title": "QR Locations",
     "default_popup": "popup.html"

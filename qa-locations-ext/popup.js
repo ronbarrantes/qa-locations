@@ -41,6 +41,7 @@ const locationsInput = document.getElementById('locations');
 const prioritiesInput = document.getElementById('priorities');
 const tableContainer = document.getElementById('table-container');
 const summary = document.getElementById('summary');
+const resultActionStatus = document.getElementById('result-action-status');
 const importLocationsBtn = document.getElementById('import-locations-btn');
 const importPrioritiesBtn = document.getElementById('import-priorities-btn');
 
@@ -52,6 +53,8 @@ const settingsSaveBtn = document.getElementById('settings-save');
 const settingsResetBtn = document.getElementById('settings-reset');
 const addGroupBtn = document.getElementById('add-group');
 const resultBackBtn = document.getElementById('result-back');
+const copyTableImageBtn = document.getElementById('copy-table-image');
+const saveTableImageBtn = document.getElementById('save-table-image');
 
 const groupsList = document.getElementById('groups-list');
 const maxRowsInput = document.getElementById('max-rows');
@@ -164,6 +167,94 @@ function saveInputs() {
 
 function clearInputsStorage() {
   storage.remove(INPUTS_STORAGE_KEY);
+}
+
+function setResultActionStatus(message, tone = '') {
+  if (!resultActionStatus) return;
+  resultActionStatus.textContent = message || '';
+  resultActionStatus.classList.remove('success', 'error');
+  if (tone) {
+    resultActionStatus.classList.add(tone);
+  }
+}
+
+function canvasToPngBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        reject(new Error('Failed to generate PNG image.'));
+        return;
+      }
+      resolve(blob);
+    }, 'image/png');
+  });
+}
+
+async function renderTablePngBlob() {
+  const table = tableContainer.querySelector('table');
+  if (!table) {
+    throw new Error('No table available to export.');
+  }
+
+  if (typeof window.html2canvas !== 'function') {
+    throw new Error('html2canvas is not loaded. Add vendor/html2canvas.min.js to enable PNG export.');
+  }
+  const canvas = await window.html2canvas(table, {
+    backgroundColor: '#ffffff',
+    scale: Math.max(2, Math.ceil(window.devicePixelRatio || 1)),
+    useCORS: true,
+  });
+  return canvasToPngBlob(canvas);
+}
+
+function downloadPngBlob(blob, filename = 'qa-locations-table.png') {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function copyTableAsPng() {
+  setResultActionStatus('Rendering PNG...');
+
+  try {
+    const pngBlob = await renderTablePngBlob();
+
+    if (navigator.clipboard?.write && typeof window.ClipboardItem !== 'undefined') {
+      await navigator.clipboard.write([
+        new window.ClipboardItem({
+          'image/png': pngBlob,
+        }),
+      ]);
+      setResultActionStatus('Table copied to clipboard as PNG. Paste into chat.', 'success');
+      return;
+    }
+
+    downloadPngBlob(pngBlob);
+    setResultActionStatus('Clipboard image copy unavailable. Downloaded qa-locations-table.png.', 'success');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to render/copy PNG.';
+    setResultActionStatus(message, 'error');
+    console.error('Failed to copy table as PNG', err);
+  }
+}
+
+async function saveTableAsPng() {
+  setResultActionStatus('Rendering PNG...');
+
+  try {
+    const pngBlob = await renderTablePngBlob();
+    downloadPngBlob(pngBlob);
+    setResultActionStatus('Saved qa-locations-table.png.', 'success');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to save PNG.';
+    setResultActionStatus(message, 'error');
+    console.error('Failed to save table as PNG', err);
+  }
 }
 
 function openImporterPage(target) {
@@ -493,6 +584,8 @@ settingsSaveBtn.addEventListener('click', saveSettingsFromUI);
 settingsResetBtn.addEventListener('click', resetSettings);
 addGroupBtn.addEventListener('click', () => addGroupToUI());
 resultBackBtn.addEventListener('click', () => showView('main'));
+copyTableImageBtn?.addEventListener('click', copyTableAsPng);
+saveTableImageBtn?.addEventListener('click', saveTableAsPng);
 
 holdViewToggle?.addEventListener('change', (event) => {
   setHoldViewEnabled(Boolean(event.target.checked));
