@@ -1,6 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QR Locations MVP",
+  "author": "Ron Barrantes <ronbarrantes@gmail.com>",
   "description": "Create a quick locations arrangement table with priorities highlighting.",
   "version": "0.1.0",
   "permissions": ["clipboardWrite"],
