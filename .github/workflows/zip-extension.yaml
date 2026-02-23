@@ -13,12 +13,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build zip file
-        working-directory: qa-locations-ext
         run: ./build-zip.sh
 
       - name: Upload zip artifact
         uses: actions/upload-artifact@v4
         with:
           name: qr-locations-mvp-zip
-          path: qa-locations-ext/dist/qr-locations-mvp.zip
+          path: dist/qr-locations-mvp.zip
           if-no-files-found: error
