@@ -14,7 +14,7 @@ MVP browser extension based on `PLAN.md`:
 
 1. Open Chromium-based browser extension settings.
 2. Enable developer mode.
-3. Load unpacked extension from this folder.
+3. Load unpacked extension from `qa-locations-ext`.
 4. Open the extension popup.
 
 ## Build distribution zip

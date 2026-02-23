@@ -5,11 +5,24 @@
     global.QALogic = factory();
   }
 })(typeof window !== 'undefined' ? window : globalThis, function () {
+  const IGNORED_PASTE_LINES = new Set([
+    'LOCATION',
+    'CONTAINERS',
+    'CURRENT LOCATION',
+    'CONTAINER ID',
+    'CONTAINER TAG',
+  ]);
+  const CSV_LOCATION_COLUMN = 'Location';
+  const XLSX_CONTAINER_TAG_COLUMN = 'Container Tag';
+  const XLSX_CURRENT_LOCATION_COLUMN = 'Current Location';
+  const QA_HOLD_PICKING_TAG = 'QA_HOLD_PICKING';
+
   function parseLines(raw) {
     return String(raw || '')
       .split(/\r?\n/)
       .map((item) => item.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((item) => !IGNORED_PASTE_LINES.has(item.toUpperCase()));
   }
 
   function tokenize(value) {
@@ -63,6 +76,133 @@
       .split(/[\s,]+/)
       .map((value) => value.trim())
       .filter(Boolean);
+  }
+
+  function normalizeImportedLocations(values) {
+    return uniqueCaseInsensitive(
+      (values || [])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ).sort(compareLocationCodes);
+  }
+
+  function parseCSVRows(rawText) {
+    const text = String(rawText || '');
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i += 1) {
+      const char = text[i];
+      const next = text[i + 1];
+
+      if (inQuotes) {
+        if (char === '"') {
+          if (next === '"') {
+            field += '"';
+            i += 1;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          field += char;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inQuotes = true;
+        continue;
+      }
+
+      if (char === ',') {
+        row.push(field);
+        field = '';
+        continue;
+      }
+
+      if (char === '\n') {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+        continue;
+      }
+
+      if (char === '\r') {
+        continue;
+      }
+
+      field += char;
+    }
+
+    if (field.length > 0 || row.length > 0) {
+      row.push(field);
+      rows.push(row);
+    }
+
+    if (rows.length && rows[0].length) {
+      rows[0][0] = String(rows[0][0]).replace(/^\uFEFF/, '');
+    }
+
+    return rows;
+  }
+
+  function getColumnIndex(headers, columnName) {
+    return (headers || []).findIndex((header) => String(header || '').trim() === columnName);
+  }
+
+  function extractLocationsFromCSVText(csvText) {
+    const rows = parseCSVRows(csvText);
+    if (!rows.length) {
+      throw new Error('CSV file is empty.');
+    }
+
+    const headers = rows[0].map((cell) => String(cell || '').trim());
+    const locationIdx = getColumnIndex(headers, CSV_LOCATION_COLUMN);
+    if (locationIdx === -1) {
+      throw new Error(`CSV column "${CSV_LOCATION_COLUMN}" not found.`);
+    }
+
+    const values = rows.slice(1).map((row) => row[locationIdx] ?? '');
+    return {
+      values: normalizeImportedLocations(values),
+      rowCount: Math.max(0, rows.length - 1),
+    };
+  }
+
+  function extractPrioritiesFromXlsxRows(rows) {
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error('Excel file is empty.');
+    }
+
+    const headers = rows[0].map((cell) => String(cell || '').trim());
+    const tagIdx = getColumnIndex(headers, XLSX_CONTAINER_TAG_COLUMN);
+    if (tagIdx === -1) {
+      throw new Error(`Excel column "${XLSX_CONTAINER_TAG_COLUMN}" not found.`);
+    }
+
+    const locationIdx = getColumnIndex(headers, XLSX_CURRENT_LOCATION_COLUMN);
+    if (locationIdx === -1) {
+      throw new Error(`Excel column "${XLSX_CURRENT_LOCATION_COLUMN}" not found.`);
+    }
+
+    const priorityValues = [];
+    rows.slice(1).forEach((row) => {
+      const tag = String(row[tagIdx] ?? '').trim();
+      if (tag !== QA_HOLD_PICKING_TAG) return;
+
+      const location = String(row[locationIdx] ?? '').trim();
+      if (location) {
+        priorityValues.push(location);
+      }
+    });
+
+    return {
+      values: normalizeImportedLocations(priorityValues),
+      rowCount: Math.max(0, rows.length - 1),
+    };
   }
 
   function extractLetterPrefix(location) {
@@ -263,6 +403,11 @@
     compareLocationCodes,
     uniqueCaseInsensitive,
     parseGroupValues,
+    normalizeImportedLocations,
+    parseCSVRows,
+    getColumnIndex,
+    extractLocationsFromCSVText,
+    extractPrioritiesFromXlsxRows,
     normalizeConfig,
     extractLetterPrefix,
     groupLocations,

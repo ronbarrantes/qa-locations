@@ -20,11 +20,28 @@
           </button>
         </div>
 
-        <label for="locations">Locations</label>
-        <textarea id="locations" placeholder="Paste one location per line"></textarea>
-
-        <label for="priorities">Priorities</label>
-        <textarea id="priorities" placeholder="Paste one priority per line"></textarea>
+        <div class="inputs-grid">
+          <div class="input-group">
+            <div class="input-actions">
+              <button id="import-locations-btn" type="button" class="secondary import-btn">
+                Import Locations (CSV)
+              </button>
+              <p class="field-status">Opens importer page</p>
+            </div>
+            <label for="locations">Locations</label>
+            <textarea id="locations" placeholder="Paste one location per line"></textarea>
+          </div>
+          <div class="input-group">
+            <div class="input-actions">
+              <button id="import-priorities-btn" type="button" class="secondary import-btn">
+                Import Priorities (XLSX)
+              </button>
+              <p class="field-status">Opens importer page</p>
+            </div>
+            <label for="priorities">Priorities</label>
+            <textarea id="priorities" placeholder="Paste one priority per line"></textarea>
+          </div>
+        </div>
 
         <div class="buttons">
           <button id="create" type="button">Create</button>
@@ -55,27 +72,37 @@
           </div>
         </div>
 
+        <div class="settings-toggle">
+          <label class="checkbox">
+            <input id="hold-view" type="checkbox" />
+            Hold last view on reopen
+          </label>
+        </div>
+
         <div class="buttons">
           <button id="settings-reset" type="button" class="secondary">Reset</button>
-          <button id="settings-defaults" type="button" class="secondary">Defaults</button>
           <button id="settings-save" type="button">Save</button>
-          <button id="settings-back" type="button" class="secondary">Back</button>
         </div>
       </section>
 
       <section id="result-view" class="card hidden" aria-live="polite">
         <div class="section-header">
           <h2>Arrangement</h2>
-          <button id="result-back" type="button" class="icon-btn" title="Back to input">↩</button>
+          <div class="header-actions">
+            <button id="copy-table-image" type="button" class="secondary compact-btn">Copy PNG</button>
+            <button id="save-table-image" type="button" class="secondary compact-btn">Save PNG</button>
+            <button id="result-back" type="button" class="icon-btn" title="Back to input">↩</button>
+          </div>
         </div>
 
         <p id="summary" class="helper"></p>
+        <p id="result-action-status" class="field-status" aria-live="polite"></p>
         <div id="table-container"></div>
       </section>
     </main>
 
-    <script src="sortable.min.js"></script>
     <script src="logic.js"></script>
+    <script src="vendor/html2canvas.min.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
