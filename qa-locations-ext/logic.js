@@ -5,11 +5,20 @@
     global.QALogic = factory();
   }
 })(typeof window !== 'undefined' ? window : globalThis, function () {
+  const IGNORED_PASTE_LINES = new Set([
+    'LOCATION',
+    'CONTAINERS',
+    'CURRENT LOCATION',
+    'CONTAINER ID',
+    'CONTAINER TAG',
+  ]);
+
   function parseLines(raw) {
     return String(raw || '')
       .split(/\r?\n/)
       .map((item) => item.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((item) => !IGNORED_PASTE_LINES.has(item.toUpperCase()));
   }
 
   function tokenize(value) {
