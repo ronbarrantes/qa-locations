@@ -6,15 +6,64 @@ const {
   groupByTitle,
   buildOutputMatrix,
   buildPrioritySet,
-} = require('../logic');
+  parseCSVRows,
+  extractLocationsFromCSVText,
+  extractPrioritiesFromXlsxRows,
+} = require('../qa-locations-ext/logic');
 
 describe('logic helpers', () => {
   test('parseLines trims and removes blanks', () => {
     expect(parseLines('A\n\n  B  \n')).toEqual(['A', 'B']);
   });
 
+  test('parseLines filters known pasted headers', () => {
+    expect(
+      parseLines('Location\nSS4:AA100\nContainer Tag\nCurrent Location\nSS4:BB200'),
+    ).toEqual(['SS4:AA100', 'SS4:BB200']);
+  });
+
   test('parseGroupValues supports commas and spaces', () => {
     expect(parseGroupValues('A, B C')).toEqual(['A', 'B', 'C']);
+  });
+
+  test('parseCSVRows handles quoted commas and escaped quotes', () => {
+    expect(parseCSVRows('Location,Note\n"SS4:AA100","A, B"\n"SS4:BB200","He said ""ok"""'))
+      .toEqual([
+        ['Location', 'Note'],
+        ['SS4:AA100', 'A, B'],
+        ['SS4:BB200', 'He said "ok"'],
+      ]);
+  });
+
+  test('extractLocationsFromCSVText reads Location column and sorts unique values', () => {
+    const csv = [
+      'Location,Container',
+      'SS4:HV253.A,1',
+      'SS4:AB100.A,2',
+      'SS4:HV253.A,3',
+      ',4',
+    ].join('\n');
+
+    expect(extractLocationsFromCSVText(csv)).toEqual({
+      values: ['SS4:AB100.A', 'SS4:HV253.A'],
+      rowCount: 4,
+    });
+  });
+
+  test('extractPrioritiesFromXlsxRows filters QA_HOLD_PICKING and extracts Current Location', () => {
+    const rows = [
+      ['Container Id', 'Current Location', 'Container Tag'],
+      ['C1', 'SS4:MEZ111.A', 'QA_HOLD_PICKING'],
+      ['C2', 'SS4:TR333.A', 'OTHER'],
+      ['C3', '', 'QA_HOLD_PICKING'],
+      ['C4', 'SS4:AB100.A', 'QA_HOLD_PICKING'],
+      ['C5', 'SS4:MEZ111.A', 'QA_HOLD_PICKING'],
+    ];
+
+    expect(extractPrioritiesFromXlsxRows(rows)).toEqual({
+      values: ['SS4:AB100.A', 'SS4:MEZ111.A'],
+      rowCount: 5,
+    });
   });
 });
 

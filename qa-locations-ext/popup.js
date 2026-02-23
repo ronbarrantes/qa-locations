@@ -41,6 +41,8 @@ const locationsInput = document.getElementById('locations');
 const prioritiesInput = document.getElementById('priorities');
 const tableContainer = document.getElementById('table-container');
 const summary = document.getElementById('summary');
+const importLocationsBtn = document.getElementById('import-locations-btn');
+const importPrioritiesBtn = document.getElementById('import-priorities-btn');
 
 const createBtn = document.getElementById('create');
 const resetBtn = document.getElementById('reset');
@@ -162,6 +164,14 @@ function saveInputs() {
 
 function clearInputsStorage() {
   storage.remove(INPUTS_STORAGE_KEY);
+}
+
+function openImporterPage(target) {
+  const url = new URL(chrome.runtime.getURL('import.html'));
+  if (target) {
+    url.searchParams.set('target', target);
+  }
+  window.open(url.toString(), '_blank');
 }
 
 function renderTable(matrix, prioritySet) {
@@ -475,6 +485,8 @@ createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
 locationsInput.addEventListener('input', saveInputs);
 prioritiesInput.addEventListener('input', saveInputs);
+importLocationsBtn?.addEventListener('click', () => openImporterPage('locations'));
+importPrioritiesBtn?.addEventListener('click', () => openImporterPage('priorities'));
 openSettingsBtn.addEventListener('click', openSettings);
 closeSettingsBtn.addEventListener('click', closeSettings);
 settingsSaveBtn.addEventListener('click', saveSettingsFromUI);
