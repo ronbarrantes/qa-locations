@@ -18,6 +18,8 @@ const {
 
 const STORAGE_KEY = 'qa-locations-settings-v1';
 const INPUTS_STORAGE_KEY = 'qa-locations-inputs-v1';
+const VIEW_STORAGE_KEY = 'qa-locations-view-v1';
+const HOLD_VIEW_KEY = 'qa-locations-hold-view-v1';
 const DEFAULT_SETTINGS = {
   groups: [
     { title: 'pallets', values: ['a', 'b', 'c', 'lud', 'prm', 'slp'] },
@@ -54,8 +56,10 @@ const resultBackBtn = document.getElementById('result-back');
 const groupsList = document.getElementById('groups-list');
 const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
+const holdViewToggle = document.getElementById('hold-view');
 
 let settingsState = loadSettings();
+let holdViewEnabled = false;
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -97,6 +101,9 @@ const storage = getStorage();
 function showView(viewKey) {
   Object.values(views).forEach((view) => view.classList.add('hidden'));
   views[viewKey].classList.remove('hidden');
+  if (holdViewEnabled) {
+    storage.set(VIEW_STORAGE_KEY, viewKey);
+  }
 }
 
 function loadSettings() {
@@ -114,6 +121,29 @@ function saveSettings(config) {
   const normalized = normalizeConfig(config);
   settingsState = normalized;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+}
+
+async function loadHoldViewEnabled() {
+  const saved = await storage.get(HOLD_VIEW_KEY);
+  return saved === true;
+}
+
+function setHoldViewEnabled(enabled) {
+  holdViewEnabled = enabled;
+  storage.set(HOLD_VIEW_KEY, enabled);
+  if (enabled) {
+    storage.set(VIEW_STORAGE_KEY, getCurrentViewKey());
+  }
+}
+
+function getCurrentViewKey() {
+  return Object.keys(views).find((key) => !views[key].classList.contains('hidden')) || 'main';
+}
+
+async function loadLastViewKey() {
+  const saved = await storage.get(VIEW_STORAGE_KEY);
+  if (saved && views[saved]) return saved;
+  return 'main';
 }
 
 async function loadInputs() {
@@ -357,4 +387,24 @@ settingsDefaultsBtn.addEventListener('click', resetToDefaults);
 addGroupBtn.addEventListener('click', () => addGroupToUI());
 resultBackBtn.addEventListener('click', () => showView('main'));
 
-loadInputs();
+holdViewToggle?.addEventListener('change', (event) => {
+  setHoldViewEnabled(Boolean(event.target.checked));
+});
+
+async function init() {
+  await loadInputs();
+  holdViewEnabled = await loadHoldViewEnabled();
+  if (holdViewToggle) {
+    holdViewToggle.checked = holdViewEnabled;
+  }
+  if (holdViewEnabled) {
+    const lastView = await loadLastViewKey();
+    if (lastView === 'result') {
+      createArrangement();
+    } else {
+      showView(lastView);
+    }
+  }
+}
+
+init();
