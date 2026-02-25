@@ -14,6 +14,8 @@ const {
   groupByTitle,
   buildOutputMatrix,
   buildPrioritySet,
+  extractLocationsFromCSVText,
+  extractPrioritiesFromXlsxRows,
 } = logic;
 
 const STORAGE_KEY = 'qa-locations-settings-v1';
@@ -44,6 +46,11 @@ const summary = document.getElementById('summary');
 const resultActionStatus = document.getElementById('result-action-status');
 const importLocationsBtn = document.getElementById('import-locations-btn');
 const importPrioritiesBtn = document.getElementById('import-priorities-btn');
+const pickLocationsBtn = document.getElementById('pick-locations-btn');
+const pickPrioritiesBtn = document.getElementById('pick-priorities-btn');
+const locationsFileInput = document.getElementById('locations-file');
+const prioritiesFileInput = document.getElementById('priorities-file');
+const importStatus = document.getElementById('import-status');
 
 const createBtn = document.getElementById('create');
 const resetBtn = document.getElementById('reset');
@@ -175,6 +182,89 @@ function setResultActionStatus(message, tone = '') {
   resultActionStatus.classList.remove('success', 'error');
   if (tone) {
     resultActionStatus.classList.add(tone);
+  }
+}
+
+function setImportStatus(message, tone = '') {
+  if (!importStatus) return;
+  importStatus.textContent = message || '';
+  importStatus.classList.remove('success', 'error');
+  if (tone) {
+    importStatus.classList.add(tone);
+  }
+}
+
+function openPicker(inputEl) {
+  if (!inputEl) return;
+  try {
+    if (typeof inputEl.showPicker === 'function') {
+      inputEl.showPicker();
+      return;
+    }
+  } catch (err) {
+    console.warn('showPicker failed, using click().', err);
+  }
+  inputEl.click();
+}
+
+async function readXlsxRows(file) {
+  if (!window.XLSX?.read || !window.XLSX?.utils?.sheet_to_json) {
+    throw new Error('XLSX parser not available. Expected vendor/xlsx.full.min.js.');
+  }
+
+  const data = await file.arrayBuffer();
+  const workbook = window.XLSX.read(data, { type: 'array' });
+  const firstSheetName = workbook.SheetNames?.[0];
+  if (!firstSheetName) {
+    throw new Error('No worksheet found in Excel file.');
+  }
+
+  const rows = window.XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName], {
+    header: 1,
+    raw: false,
+    defval: '',
+    blankrows: false,
+  });
+
+  return rows.map((row) => (Array.isArray(row) ? row : []));
+}
+
+async function importLocationsFromFile(file) {
+  setImportStatus(`Reading ${file.name}...`);
+  const csvText = await file.text();
+  const result = extractLocationsFromCSVText(csvText);
+  locationsInput.value = result.values.join('\n');
+  saveInputs();
+  setImportStatus(
+    `Imported ${result.values.length} unique locations from ${result.rowCount} rows.`,
+    'success',
+  );
+}
+
+async function importPrioritiesFromFile(file) {
+  setImportStatus(`Reading ${file.name}...`);
+  const rows = await readXlsxRows(file);
+  const result = extractPrioritiesFromXlsxRows(rows);
+  prioritiesInput.value = result.values.join('\n');
+  saveInputs();
+  setImportStatus(
+    `Imported ${result.values.length} priority locations from ${result.rowCount} rows.`,
+    'success',
+  );
+}
+
+async function handlePickedFile(kind, file) {
+  if (!file) return;
+  try {
+    if (kind === 'locations') {
+      await importLocationsFromFile(file);
+    } else {
+      await importPrioritiesFromFile(file);
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Import failed.';
+    setImportStatus(message, 'error');
+    console.error(`Failed to import ${kind}`, err);
   }
 }
 
@@ -578,6 +668,24 @@ locationsInput.addEventListener('input', saveInputs);
 prioritiesInput.addEventListener('input', saveInputs);
 importLocationsBtn?.addEventListener('click', () => openImporterPage('locations'));
 importPrioritiesBtn?.addEventListener('click', () => openImporterPage('priorities'));
+pickLocationsBtn?.addEventListener('click', () => {
+  setImportStatus('Choose a CSV file...');
+  openPicker(locationsFileInput);
+});
+pickPrioritiesBtn?.addEventListener('click', () => {
+  setImportStatus('Choose an XLSX file...');
+  openPicker(prioritiesFileInput);
+});
+locationsFileInput?.addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  await handlePickedFile('locations', file);
+  event.target.value = '';
+});
+prioritiesFileInput?.addEventListener('change', async (event) => {
+  const file = event.target.files?.[0];
+  await handlePickedFile('priorities', file);
+  event.target.value = '';
+});
 openSettingsBtn.addEventListener('click', openSettings);
 closeSettingsBtn.addEventListener('click', closeSettings);
 settingsSaveBtn.addEventListener('click', saveSettingsFromUI);

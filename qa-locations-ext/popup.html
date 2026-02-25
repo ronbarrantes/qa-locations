@@ -40,7 +40,31 @@
           >
             Import Priorities (XLSX)
           </button>
+          <button
+            id="pick-locations-btn"
+            type="button"
+            class="secondary import-btn"
+          >
+            Select Locations (CSV)
+          </button>
+          <button
+            id="pick-priorities-btn"
+            type="button"
+            class="secondary import-btn"
+          >
+            Select Priorities (XLSX)
+          </button>
         </div>
+
+        <input id="locations-file" type="file" accept=".csv,text/csv" hidden />
+        <input
+          id="priorities-file"
+          type="file"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          hidden
+        />
+
+        <p id="import-status" class="field-status" aria-live="polite"></p>
 
         <div class="inputs-grid">
           <div class="input-group">
@@ -154,6 +178,7 @@
     </main>
 
     <script src="logic.js"></script>
+    <script src="vendor/xlsx.full.min.js"></script>
     <script src="vendor/html2canvas.min.js"></script>
     <script src="popup.js"></script>
   </body>
