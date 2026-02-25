@@ -25,18 +25,25 @@
           </button>
         </div>
 
+        <div class="main-import-actions">
+          <button
+            id="import-locations-btn"
+            type="button"
+            class="secondary import-btn"
+          >
+            Import Locations (CSV)
+          </button>
+          <button
+            id="import-priorities-btn"
+            type="button"
+            class="secondary import-btn"
+          >
+            Import Priorities (XLSX)
+          </button>
+        </div>
+
         <div class="inputs-grid">
           <div class="input-group">
-            <div class="input-actions">
-              <button
-                id="import-locations-btn"
-                type="button"
-                class="secondary import-btn"
-              >
-                Import Locations (CSV)
-              </button>
-              <p class="field-status">Opens importer page</p>
-            </div>
             <label for="locations">Locations</label>
             <textarea
               id="locations"
@@ -44,16 +51,6 @@
             ></textarea>
           </div>
           <div class="input-group">
-            <div class="input-actions">
-              <button
-                id="import-priorities-btn"
-                type="button"
-                class="secondary import-btn"
-              >
-                Import Priorities (XLSX)
-              </button>
-              <p class="field-status">Opens importer page</p>
-            </div>
             <label for="priorities">Priorities</label>
             <textarea
               id="priorities"
