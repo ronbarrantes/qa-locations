@@ -15,32 +15,30 @@
       <section id="main-view" class="card">
         <div class="section-header">
           <h2>Input</h2>
-          <button
-            id="open-settings"
-            type="button"
-            class="icon-btn"
-            title="Settings"
-          >
-            ⚙️
-          </button>
+          <div class="header-actions">
+            <button
+              id="open-imports-btn"
+              type="button"
+              class="secondary compact-btn"
+            >
+              Open Imports
+            </button>
+            <button
+              id="open-settings"
+              type="button"
+              class="icon-btn"
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
 
         <div class="inputs-grid">
           <div class="input-group">
             <label for="locations">Locations</label>
-            <textarea
-              id="locations"
-              placeholder="Paste one location per line"
-            ></textarea>
             <div class="input-actions">
               <div class="input-actions-row">
-                <button
-                  id="import-locations-btn"
-                  type="button"
-                  class="secondary import-btn"
-                >
-                  Import Locations
-                </button>
                 <button
                   id="pick-locations-btn"
                   type="button"
@@ -49,6 +47,10 @@
                   Select Locations (.csv)
                 </button>
               </div>
+              <textarea
+                id="locations"
+                placeholder="Paste one location per line"
+              ></textarea>
               <p id="locations-import-status" class="field-status">
                 Opens importer page
               </p>
@@ -68,13 +70,6 @@
             ></textarea>
             <div class="input-actions">
               <div class="input-actions-row">
-                <button
-                  id="import-priorities-btn"
-                  type="button"
-                  class="secondary import-btn"
-                >
-                  Import Priorities [to delete]
-                </button>
                 <button
                   id="pick-priorities-btn"
                   type="button"
