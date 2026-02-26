@@ -150,6 +150,12 @@ h2 {
   gap: 4px;
 }
 
+.input-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .import-btn {
   justify-self: start;
 }
