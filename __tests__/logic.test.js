@@ -6,6 +6,8 @@ const {
   groupByTitle,
   buildOutputMatrix,
   buildPrioritySet,
+  buildPriorityToneByLocation,
+  parseCutTimeValue,
   parseCSVRows,
   normalizeImportedLocations,
   extractLocationsFromCSVText,
@@ -51,20 +53,29 @@ describe('logic helpers', () => {
     });
   });
 
-  test('extractPrioritiesFromXlsxRows filters QA_HOLD_PICKING and extracts Current Location', () => {
+  test('extractPrioritiesFromXlsxRows filters QA_HOLD_PICKING, dedupes locations, and keeps earliest cut time', () => {
     const rows = [
-      ['Container Id', 'Current Location', 'Container Tag'],
-      ['C1', 'SS4:MEZ111.A', 'QA_HOLD_PICKING'],
-      ['C2', 'SS4:TR333.A', 'OTHER'],
-      ['C3', '', 'QA_HOLD_PICKING'],
-      ['C4', 'SS4:AB100.A', 'QA_HOLD_PICKING'],
-      ['C5', 'SS4:MEZ111.A', 'QA_HOLD_PICKING'],
+      ['Container Id', 'Current Location', 'Container Tag', 'Earliest Cut-time'],
+      ['C1', 'SS4:MEZ111.A', 'QA_HOLD_PICKING', '2026-03-11T20:00:00.000Z'],
+      ['C2', 'SS4:TR333.A', 'OTHER', '2026-03-11T22:00:00.000Z'],
+      ['C3', '', 'QA_HOLD_PICKING', '2026-03-11T19:00:00.000Z'],
+      ['C4', 'SS4:AB100.A', 'QA_HOLD_PICKING', '2026-03-11T18:00:00.000Z'],
+      ['C5', 'SS4:MEZ111.A', 'QA_HOLD_PICKING', '2026-03-11T19:30:00.000Z'],
     ];
 
     expect(extractPrioritiesFromXlsxRows(rows)).toEqual({
       values: ['SS4:AB100.A', 'SS4:MEZ111.A'],
+      entries: [
+        { location: 'SS4:AB100.A', cutTime: '2026-03-11T18:00:00.000Z' },
+        { location: 'SS4:MEZ111.A', cutTime: '2026-03-11T19:30:00.000Z' },
+      ],
       rowCount: 5,
     });
+  });
+
+  test('parseCutTimeValue parses excel serial and display string values', () => {
+    expect(parseCutTimeValue(46103.9625)).toBe('2026-03-22T23:06:00.000Z');
+    expect(parseCutTimeValue('3/11/2026 10:51:00 PM')).not.toBeNull();
   });
 
   test('normalizeImportedLocations sorts using the segment after first colon', () => {
@@ -121,5 +132,24 @@ describe('output layout', () => {
   test('buildPrioritySet only keeps matches', () => {
     const set = buildPrioritySet(['A', 'B'], ['B', 'C']);
     expect(Array.from(set)).toEqual(['B']);
+  });
+
+  test('buildPriorityToneByLocation computes 3 urgency buckets based on now', () => {
+    const now = new Date('2026-03-11T20:00:00.000Z');
+    const toneMap = buildPriorityToneByLocation(
+      ['A', 'B', 'C', 'D'],
+      [
+        { location: 'A', cutTime: '2026-03-11T20:30:00.000Z' },
+        { location: 'B', cutTime: '2026-03-11T23:00:00.000Z' },
+        { location: 'C', cutTime: '2026-03-12T05:30:00.000Z' },
+        { location: 'D', cutTime: '2026-03-11T19:45:00.000Z' },
+      ],
+      now,
+    );
+
+    expect(toneMap.get('A')).toBe('priority-orange');
+    expect(toneMap.get('B')).toBe('priority-yellow');
+    expect(toneMap.get('C')).toBe('priority-green');
+    expect(toneMap.get('D')).toBe('priority-orange');
   });
 });
