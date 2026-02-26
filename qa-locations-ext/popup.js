@@ -13,7 +13,7 @@ const {
   groupLocations,
   groupByTitle,
   buildOutputMatrix,
-  buildPrioritySet,
+  buildPriorityToneByLocation,
   extractLocationsFromCSVText,
   extractPrioritiesFromXlsxRows,
 } = logic;
@@ -40,7 +40,6 @@ const views = {
 };
 
 const locationsInput = document.getElementById('locations');
-const prioritiesInput = document.getElementById('priorities');
 const tableContainer = document.getElementById('table-container');
 const summary = document.getElementById('summary');
 const resultActionStatus = document.getElementById('result-action-status');
@@ -70,6 +69,7 @@ const holdViewToggle = document.getElementById('hold-view');
 
 let settingsState = loadSettings();
 let holdViewEnabled = false;
+let priorityEntriesState = [];
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -162,13 +162,20 @@ async function loadInputs() {
   const saved = await storage.get(INPUTS_STORAGE_KEY);
   if (!saved || typeof saved !== 'object') return;
   if (typeof saved.locations === 'string') locationsInput.value = saved.locations;
-  if (typeof saved.priorities === 'string') prioritiesInput.value = saved.priorities;
+  if (Array.isArray(saved.priorityEntries)) {
+    priorityEntriesState = saved.priorityEntries
+      .map((entry) => ({
+        location: String(entry?.location || '').trim(),
+        cutTime: entry?.cutTime ? String(entry.cutTime) : null,
+      }))
+      .filter((entry) => entry.location);
+  }
 }
 
 function saveInputs() {
   storage.set(INPUTS_STORAGE_KEY, {
     locations: locationsInput.value,
-    priorities: prioritiesInput.value,
+    priorityEntries: priorityEntriesState,
   });
 }
 
@@ -247,11 +254,11 @@ async function importPrioritiesFromFile(file) {
   setImportStatus('priorities', `Reading ${file.name}...`);
   const rows = await readXlsxRows(file);
   const result = extractPrioritiesFromXlsxRows(rows);
-  prioritiesInput.value = result.values.join('\n');
+  priorityEntriesState = result.entries;
   saveInputs();
   setImportStatus(
     'priorities',
-    `Imported ${result.values.length} priority locations from ${result.rowCount} rows.`,
+    `Imported ${result.entries.length} unique priority locations from ${result.rowCount} rows.`,
     'success',
   );
 }
@@ -358,7 +365,7 @@ function openImporterPage(target) {
   window.open(url.toString(), '_blank');
 }
 
-function renderTable(matrix, prioritySet) {
+function renderTable(matrix, priorityToneByLocation) {
   tableContainer.replaceChildren();
 
   if (!matrix.headers.length) {
@@ -398,8 +405,11 @@ function renderTable(matrix, prioritySet) {
       if (!matrix.headers[idx]) {
         td.classList.add('gap');
       }
-      if (value && prioritySet.has(value.toUpperCase())) {
-        td.classList.add('priority');
+      if (value) {
+        const toneClass = priorityToneByLocation.get(String(value).trim().toUpperCase());
+        if (toneClass) {
+          td.classList.add(toneClass);
+        }
       }
       tr.appendChild(td);
     });
@@ -412,7 +422,6 @@ function renderTable(matrix, prioritySet) {
 
 function createArrangement() {
   const locations = uniqueCaseInsensitive(parseLines(locationsInput.value)).sort(compareLocationCodes);
-  const priorities = uniqueCaseInsensitive(parseLines(prioritiesInput.value)).sort(compareLocationCodes);
 
   if (locations.length === 0) {
     summary.textContent = 'Add at least one location.';
@@ -426,18 +435,18 @@ function createArrangement() {
   const titleGrouped = groupByTitle(grouped, config);
   const titleOrder = config.groups.map((group) => group.title);
   const matrix = buildOutputMatrix(titleOrder, titleGrouped, config.maxRows, config.columnGap);
-  const prioritySet = buildPrioritySet(locations, priorities);
+  const priorityToneByLocation = buildPriorityToneByLocation(locations, priorityEntriesState, new Date());
 
-  renderTable(matrix, prioritySet);
+  renderTable(matrix, priorityToneByLocation);
 
   const maxRowsLabel = config.maxRows > 0 ? config.maxRows : 'no limit';
-  summary.textContent = `${locations.length} locations, ${matrix.headers.length} columns, max rows ${maxRowsLabel}, gap ${config.columnGap}.`;
+  summary.textContent = `${locations.length} locations, ${priorityEntriesState.length} priorities, ${matrix.headers.length} columns, max rows ${maxRowsLabel}, gap ${config.columnGap}.`;
   showView('result');
 }
 
 function resetForm() {
   locationsInput.value = '';
-  prioritiesInput.value = '';
+  priorityEntriesState = [];
   clearInputsStorage();
 }
 
@@ -668,7 +677,6 @@ function resetSettings() {
 createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
 locationsInput.addEventListener('input', saveInputs);
-prioritiesInput.addEventListener('input', saveInputs);
 openImportsBtn?.addEventListener('click', () => openImporterPage('locations'));
 pickLocationsBtn?.addEventListener('click', () => {
   setImportStatus('locations', 'Choose a CSV file...');

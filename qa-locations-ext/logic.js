@@ -15,6 +15,8 @@
   const CSV_LOCATION_COLUMN = 'Location';
   const XLSX_CONTAINER_TAG_COLUMN = 'Container Tag';
   const XLSX_CURRENT_LOCATION_COLUMN = 'Current Location';
+  const XLSX_EARLIEST_CUT_TIME_COLUMN = 'Earliest Cut-time';
+  const XLSX_CUT_TIME_COLUMN = 'Cut Time';
   const QA_HOLD_PICKING_TAG = 'QA_HOLD_PICKING';
 
   function parseLines(raw) {
@@ -37,6 +39,10 @@
     const idx = value.indexOf(':');
     if (idx === -1) return value;
     return value.slice(idx + 1);
+  }
+
+  function normalizeLocationKey(location) {
+    return String(location || '').trim().toUpperCase();
   }
 
   function compareLocationCodes(a, b) {
@@ -195,21 +201,89 @@
       throw new Error(`Excel column "${XLSX_CURRENT_LOCATION_COLUMN}" not found.`);
     }
 
-    const priorityValues = [];
+    const cutTimeIdx =
+      getColumnIndex(headers, XLSX_EARLIEST_CUT_TIME_COLUMN) !== -1
+        ? getColumnIndex(headers, XLSX_EARLIEST_CUT_TIME_COLUMN)
+        : getColumnIndex(headers, XLSX_CUT_TIME_COLUMN);
+
+    const prioritiesByLocation = new Map();
     rows.slice(1).forEach((row) => {
       const tag = String(row[tagIdx] ?? '').trim();
       if (tag !== QA_HOLD_PICKING_TAG) return;
 
       const location = String(row[locationIdx] ?? '').trim();
-      if (location) {
-        priorityValues.push(location);
+      if (!location) return;
+
+      const cutTime = parseCutTimeValue(cutTimeIdx === -1 ? undefined : row[cutTimeIdx]);
+      const key = normalizeLocationKey(location);
+      const prev = prioritiesByLocation.get(key);
+      if (!prev) {
+        prioritiesByLocation.set(key, { location, cutTime });
+        return;
+      }
+
+      if (cutTime && (!prev.cutTime || cutTime < prev.cutTime)) {
+        prioritiesByLocation.set(key, { location, cutTime });
       }
     });
 
+    const entries = Array.from(prioritiesByLocation.values()).sort((a, b) =>
+      compareLocationCodes(a.location, b.location),
+    );
+
     return {
-      values: normalizeImportedLocations(priorityValues),
+      values: entries.map((entry) => entry.location),
+      entries,
       rowCount: Math.max(0, rows.length - 1),
     };
+  }
+
+  function parseCutTimeValue(value) {
+    if (value == null || value === '') return null;
+
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value.toISOString();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      const excelEpochUtcMs = Date.UTC(1899, 11, 30);
+      const utcMs = excelEpochUtcMs + Math.round(value * 24 * 60 * 60 * 1000);
+      const date = new Date(utcMs);
+      return Number.isNaN(date.getTime()) ? null : date.toISOString();
+    }
+
+    const text = String(value).trim();
+    if (!text) return null;
+    const parsed = new Date(text);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
+
+  function buildPriorityToneByLocation(locations, priorityEntries, now = new Date()) {
+    const locationSet = new Set((locations || []).map((loc) => normalizeLocationKey(loc)));
+    const toneMap = new Map();
+    const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
+
+    (priorityEntries || []).forEach((entry) => {
+      const location = String(entry?.location || '').trim();
+      const key = normalizeLocationKey(location);
+      if (!location || !locationSet.has(key)) return;
+
+      const cutTimeIso = entry?.cutTime;
+      if (!cutTimeIso) return;
+      const cutMs = new Date(cutTimeIso).getTime();
+      if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) return;
+
+      const deltaMs = cutMs - nowMs;
+      if (deltaMs <= 2 * 60 * 60 * 1000) {
+        toneMap.set(key, 'priority-orange');
+      } else if (deltaMs <= 5 * 60 * 60 * 1000) {
+        toneMap.set(key, 'priority-yellow');
+      } else {
+        toneMap.set(key, 'priority-green');
+      }
+    });
+
+    return toneMap;
   }
 
   function extractLetterPrefix(location) {
@@ -409,6 +483,7 @@
     tokenize,
     compareLocationCodes,
     sortableLocationKey,
+    normalizeLocationKey,
     uniqueCaseInsensitive,
     parseGroupValues,
     normalizeImportedLocations,
@@ -416,6 +491,7 @@
     getColumnIndex,
     extractLocationsFromCSVText,
     extractPrioritiesFromXlsxRows,
+    parseCutTimeValue,
     normalizeConfig,
     extractLetterPrefix,
     groupLocations,
@@ -423,5 +499,6 @@
     columnsNeeded,
     buildOutputMatrix,
     buildPrioritySet,
+    buildPriorityToneByLocation,
   };
 });

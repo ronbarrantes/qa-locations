@@ -519,8 +519,20 @@ td.gap {
   border: 1px solid #d3d3d3;
 }
 
-td.priority {
-  background: #fafa5d;
-  color: #000;
-  font-weight: 400;
+td.priority-orange {
+  background: #f8b44f;
+  color: #111111;
+  font-weight: 600;
+}
+
+td.priority-yellow {
+  background: #f7e968;
+  color: #111111;
+  font-weight: 600;
+}
+
+td.priority-green {
+  background: #86efac;
+  color: #111111;
+  font-weight: 600;
 }
