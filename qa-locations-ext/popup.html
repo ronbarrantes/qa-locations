@@ -15,73 +15,73 @@
       <section id="main-view" class="card">
         <div class="section-header">
           <h2>Input</h2>
-          <button
-            id="open-settings"
-            type="button"
-            class="icon-btn"
-            title="Settings"
-          >
-            ⚙️
-          </button>
+          <div class="header-actions">
+            <button
+              id="open-imports-btn"
+              type="button"
+              class="secondary compact-btn"
+            >
+              Open Imports
+            </button>
+            <button
+              id="open-settings"
+              type="button"
+              class="icon-btn"
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
 
         <div class="inputs-grid">
           <div class="input-group">
             <label for="locations">Locations</label>
-            <textarea
-              id="locations"
-              placeholder="Paste one location per line"
-            ></textarea>
             <div class="input-actions">
               <div class="input-actions-row">
-                <button
-                  id="import-locations-btn"
-                  type="button"
-                  class="secondary import-btn"
-                >
-                  Import Locations
-                </button>
                 <button
                   id="pick-locations-btn"
                   type="button"
                   class="secondary import-btn"
                 >
-                  Select Locations
+                  Select Locations (.csv)
                 </button>
               </div>
               <p id="locations-import-status" class="field-status">
                 Opens importer page
               </p>
             </div>
-            <input id="locations-file" type="file" accept=".csv,text/csv" hidden />
+            <textarea
+              id="locations"
+              placeholder="Paste one location per line"
+            ></textarea>
+            <input
+              id="locations-file"
+              type="file"
+              accept=".csv,text/csv"
+              hidden
+            />
           </div>
           <div class="input-group">
             <label for="priorities">Priorities</label>
-            <textarea
-              id="priorities"
-              placeholder="Paste one priority per line"
-            ></textarea>
             <div class="input-actions">
               <div class="input-actions-row">
-                <button
-                  id="import-priorities-btn"
-                  type="button"
-                  class="secondary import-btn"
-                >
-                  Import Priorities
-                </button>
                 <button
                   id="pick-priorities-btn"
                   type="button"
                   class="secondary import-btn"
                 >
-                  Select Priorities
+                  Select Priorities (.xlsx)
                 </button>
               </div>
               <p id="priorities-import-status" class="field-status">
                 Opens importer page
               </p>
             </div>
+            <textarea
+              id="priorities"
+              placeholder="Paste one priority per line"
+            ></textarea>
             <input
               id="priorities-file"
               type="file"
