@@ -32,9 +32,16 @@
       ?.map((chunk) => (/^\d+$/.test(chunk) ? Number(chunk) : chunk)) ?? [value];
   }
 
+  function sortableLocationKey(location) {
+    const value = String(location ?? '');
+    const idx = value.indexOf(':');
+    if (idx === -1) return value;
+    return value.slice(idx + 1);
+  }
+
   function compareLocationCodes(a, b) {
-    const partsA = tokenize(a);
-    const partsB = tokenize(b);
+    const partsA = tokenize(sortableLocationKey(a));
+    const partsB = tokenize(sortableLocationKey(b));
     const max = Math.max(partsA.length, partsB.length);
 
     for (let i = 0; i < max; i += 1) {
@@ -401,6 +408,7 @@
     parseLines,
     tokenize,
     compareLocationCodes,
+    sortableLocationKey,
     uniqueCaseInsensitive,
     parseGroupValues,
     normalizeImportedLocations,

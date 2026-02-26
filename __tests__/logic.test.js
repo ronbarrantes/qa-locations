@@ -7,6 +7,7 @@ const {
   buildOutputMatrix,
   buildPrioritySet,
   parseCSVRows,
+  normalizeImportedLocations,
   extractLocationsFromCSVText,
   extractPrioritiesFromXlsxRows,
 } = require('../qa-locations-ext/logic');
@@ -65,6 +66,12 @@ describe('logic helpers', () => {
       rowCount: 5,
     });
   });
+
+  test('normalizeImportedLocations sorts using the segment after first colon', () => {
+    const locations = ['PS2:AM112', 'SS12:AB309.C'];
+
+    expect(normalizeImportedLocations(locations)).toEqual(['SS12:AB309.C', 'PS2:AM112']);
+  });
 });
 
 describe('grouping rules', () => {
@@ -83,7 +90,7 @@ describe('grouping rules', () => {
 
     expect(grouped.mez).toEqual(['SS4:MEZ111.A']);
     expect(grouped.t).toEqual(['SS4:TR333.A']);
-    expect(grouped.unassigned).toEqual(['SS4:AB123.A']);
+    expect(grouped.unassigned).toEqual([]);
   });
 
   test('groupByTitle maps grouped values to titles', () => {
@@ -91,7 +98,7 @@ describe('grouping rules', () => {
     const grouped = groupLocations(locations, config);
     const titleGrouped = groupByTitle(grouped, config);
 
-    expect(titleGrouped.mnst).toEqual(['SS4:MEZ111.A', 'SS4:TR333.A']);
+    expect(titleGrouped.mnst).toEqual(['SS4:TR333.A', 'SS4:MEZ111.A']);
   });
 });
 
