@@ -72,6 +72,18 @@ const holdViewToggle = document.getElementById('hold-view');
 let settingsState = loadSettings();
 let holdViewEnabled = false;
 let priorityEntriesState = [];
+let locationsState = '';
+
+function getLocationsText() {
+  return locationsInput ? locationsInput.value : locationsState;
+}
+
+function setLocationsText(value) {
+  locationsState = value || '';
+  if (locationsInput) {
+    locationsInput.value = locationsState;
+  }
+}
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -163,7 +175,7 @@ async function loadLastViewKey() {
 async function loadInputs() {
   const saved = await storage.get(INPUTS_STORAGE_KEY);
   if (!saved || typeof saved !== 'object') return;
-  if (typeof saved.locations === 'string') locationsInput.value = saved.locations;
+  if (typeof saved.locations === 'string') setLocationsText(saved.locations);
   if (Array.isArray(saved.priorityEntries)) {
     priorityEntriesState = saved.priorityEntries
       .map((entry) => ({
@@ -176,7 +188,7 @@ async function loadInputs() {
 
 function saveInputs() {
   storage.set(INPUTS_STORAGE_KEY, {
-    locations: locationsInput.value,
+    locations: getLocationsText(),
     priorityEntries: priorityEntriesState,
   });
 }
@@ -243,7 +255,7 @@ async function importLocationsFromFile(file) {
   setImportStatus('locations', `Reading ${file.name}...`);
   const csvText = await file.text();
   const result = extractLocationsFromCSVText(csvText);
-  locationsInput.value = result.values.join('\n');
+  setLocationsText(result.values.join('\n'));
   saveInputs();
   setImportStatus(
     'locations',
@@ -423,7 +435,7 @@ function renderTable(matrix, priorityToneByLocation) {
 }
 
 function createArrangement() {
-  const locations = uniqueCaseInsensitive(parseLines(locationsInput.value)).sort(compareLocationCodes);
+  const locations = uniqueCaseInsensitive(parseLines(getLocationsText())).sort(compareLocationCodes);
 
   if (locations.length === 0) {
     summary.textContent = 'Add at least one location.';
@@ -452,7 +464,7 @@ function createArrangement() {
 }
 
 function resetForm() {
-  locationsInput.value = '';
+  setLocationsText('');
   priorityEntriesState = [];
   clearInputsStorage();
 }
@@ -687,7 +699,7 @@ function resetSettings() {
 
 createBtn.addEventListener('click', createArrangement);
 resetBtn.addEventListener('click', resetForm);
-locationsInput.addEventListener('input', saveInputs);
+locationsInput?.addEventListener('input', saveInputs);
 openImportsBtn?.addEventListener('click', () => openImporterPage('locations'));
 pickLocationsBtn?.addEventListener('click', () => {
   setImportStatus('locations', 'Choose a CSV file...');
