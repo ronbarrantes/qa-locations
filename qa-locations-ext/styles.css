@@ -297,6 +297,10 @@ select:focus {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
+.settings-toggle .checkbox + .checkbox {
+  margin-top: 8px;
+}
+
 .checkbox input[type="checkbox"] {
   width: auto;
   accent-color: var(--accent);

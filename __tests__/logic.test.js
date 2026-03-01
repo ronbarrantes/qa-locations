@@ -165,4 +165,20 @@ describe("output layout", () => {
     expect(toneMap.get("C")).toBe("priority-green");
     expect(toneMap.get("D")).toBe("priority-red");
   });
+
+  test("buildPriorityToneByLocation uses yellow for all priorities when colorsMode is off", () => {
+    const toneMap = buildPriorityToneByLocation(
+      ["A", "B", "C"],
+      [
+        { location: "A", cutTime: null },
+        { location: "B", cutTime: "2026-03-11T23:00:00.000Z" },
+      ],
+      new Date("2026-03-11T20:00:00.000Z"),
+      false,
+    );
+
+    expect(toneMap.get("A")).toBe("priority-yellow");
+    expect(toneMap.get("B")).toBe("priority-yellow");
+    expect(toneMap.get("C")).toBeUndefined();
+  });
 });

@@ -31,6 +31,7 @@ const DEFAULT_SETTINGS = {
   ],
   maxRows: 20,
   columnGap: 1,
+  colorsMode: false,
 };
 
 const views = {
@@ -65,6 +66,7 @@ const saveTableImageBtn = document.getElementById('save-table-image');
 const groupsList = document.getElementById('groups-list');
 const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
+const colorsModeToggle = document.getElementById('colors-mode');
 const holdViewToggle = document.getElementById('hold-view');
 
 let settingsState = loadSettings();
@@ -435,7 +437,12 @@ function createArrangement() {
   const titleGrouped = groupByTitle(grouped, config);
   const titleOrder = config.groups.map((group) => group.title);
   const matrix = buildOutputMatrix(titleOrder, titleGrouped, config.maxRows, config.columnGap);
-  const priorityToneByLocation = buildPriorityToneByLocation(locations, priorityEntriesState, new Date());
+  const priorityToneByLocation = buildPriorityToneByLocation(
+    locations,
+    priorityEntriesState,
+    new Date(),
+    config.colorsMode,
+  );
 
   renderTable(matrix, priorityToneByLocation);
 
@@ -466,6 +473,9 @@ function populateSettingsUI(config) {
   });
   maxRowsInput.value = config.maxRows;
   columnGapInput.value = config.columnGap;
+  if (colorsModeToggle) {
+    colorsModeToggle.checked = config.colorsMode !== false;
+  }
 }
 
 function addGroupToUI(title = '', values = []) {
@@ -650,6 +660,7 @@ function getSettingsFromUI() {
     groups,
     maxRows: Number(maxRowsInput.value) || 20,
     columnGap: Number(columnGapInput.value) || 0,
+    colorsMode: Boolean(colorsModeToggle?.checked),
   };
 }
 

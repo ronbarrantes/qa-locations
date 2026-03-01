@@ -272,11 +272,23 @@
     locations,
     priorityEntries,
     now = new Date(),
+    colorsMode = true,
   ) {
     const locationSet = new Set(
       (locations || []).map((loc) => normalizeLocationKey(loc)),
     );
     const toneMap = new Map();
+
+    if (!colorsMode) {
+      (priorityEntries || []).forEach((entry) => {
+        const location = String(entry?.location || "").trim();
+        const key = normalizeLocationKey(location);
+        if (!location || !locationSet.has(key)) return;
+        toneMap.set(key, "priority-yellow");
+      });
+      return toneMap;
+    }
+
     const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
 
     (priorityEntries || []).forEach((entry) => {
@@ -324,6 +336,7 @@
       columnGap: Number.isFinite(config?.columnGap)
         ? Number(config.columnGap)
         : 1,
+      colorsMode: config?.colorsMode === true ? true : false,
     };
   }
 
