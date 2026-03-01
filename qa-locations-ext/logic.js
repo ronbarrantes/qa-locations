@@ -357,8 +357,6 @@
     });
     grouped.unassigned = [];
 
-    const lettersOnly = /^[A-Za-z]+$/;
-
     locations.forEach((loc) => {
       const prefix = extractLetterPrefix(loc);
       if (!prefix) {
@@ -369,14 +367,12 @@
       const prefixLower = prefix.toLowerCase();
       let assigned = false;
 
-      if (prefix.length >= 3 && lettersOnly.test(prefix)) {
-        if (validKeys.has(prefixLower)) {
-          grouped[prefixLower].push(loc);
-          assigned = true;
-        }
+      if (validKeys.has(prefixLower)) {
+        grouped[prefixLower].push(loc);
+        assigned = true;
       }
 
-      if (!assigned && prefix.length >= 2) {
+      if (!assigned && prefix.length >= 1) {
         const firstLetter = prefixLower[0];
         if (validKeys.has(firstLetter)) {
           grouped[firstLetter].push(loc);
