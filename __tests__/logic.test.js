@@ -108,12 +108,34 @@ describe("grouping rules", () => {
     columnGap: 1,
   });
 
-  test("groupLocations matches exact 3+ letter prefixes or first letter", () => {
-    const locations = ["SS4:MEZ111.A", "SS4:TR333.A", "SS4:AB123.A"];
+  test("groupLocations matches explicit prefixes first, then first-letter fallback", () => {
+    const locations = [
+      "SS4:MEZ111.A",
+      "SS4:TR333.A",
+      "SS4:AB123.A",
+      "SS2:W17.61",
+    ];
     const grouped = groupLocations(locations, config);
 
     expect(grouped.mez).toEqual(["SS4:MEZ111.A"]);
     expect(grouped.t).toEqual(["SS4:TR333.A"]);
+    expect(grouped.a).toEqual(["SS4:AB123.A"]);
+    expect(grouped.unassigned).toEqual(["SS2:W17.61"]);
+  });
+
+  test("groupLocations supports explicit 2-letter keys before first-letter fallback", () => {
+    const explicitConfig = normalizeConfig({
+      groups: [{ title: "zones", values: ["d", "dd", "y", "yx"] }],
+      maxRows: 2,
+      columnGap: 1,
+    });
+
+    const locations = ["SS2:DD17.61", "SS2:YX52.10", "SS2:DX08.10"];
+    const grouped = groupLocations(locations, explicitConfig);
+
+    expect(grouped.dd).toEqual(["SS2:DD17.61"]);
+    expect(grouped.yx).toEqual(["SS2:YX52.10"]);
+    expect(grouped.d).toEqual(["SS2:DX08.10"]);
     expect(grouped.unassigned).toEqual([]);
   });
 
