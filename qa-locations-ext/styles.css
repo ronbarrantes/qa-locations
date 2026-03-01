@@ -520,19 +520,16 @@ td.gap {
 }
 
 td.priority-orange {
-  background: #f8b44f;
+  background: #fab8b6;
   color: #111111;
-  font-weight: 600;
 }
 
 td.priority-yellow {
-  background: #f7e968;
+  background: #fae755;
   color: #111111;
-  font-weight: 600;
 }
 
 td.priority-green {
-  background: #86efac;
+  background: #87ffbf;
   color: #111111;
-  font-weight: 600;
 }
