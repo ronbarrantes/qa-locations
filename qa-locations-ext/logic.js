@@ -17,7 +17,12 @@
   const XLSX_CURRENT_LOCATION_COLUMN = "Current Location";
   const XLSX_EARLIEST_CUT_TIME_COLUMN = "Earliest Cut-time";
   const XLSX_CUT_TIME_COLUMN = "Cut Time";
-  const QA_HOLD_PICKING_TAG = "QA_HOLD_PICKING";
+  const PRIORITY_CONTAINER_TAGS = new Set([
+    "QA_HOLD_PICKING",
+    "QA_HOLD_PUTAWAY",
+    "QA_HOLD_REPLENISHMENT",
+    "QA_HOLD_REWAREHOUSING",
+  ]);
 
   function parseLines(raw) {
     return String(raw || "")
@@ -217,7 +222,7 @@
     const prioritiesByLocation = new Map();
     rows.slice(1).forEach((row) => {
       const tag = String(row[tagIdx] ?? "").trim();
-      if (tag !== QA_HOLD_PICKING_TAG) return;
+      if (!PRIORITY_CONTAINER_TAGS.has(tag)) return;
 
       const location = String(row[locationIdx] ?? "").trim();
       if (!location) return;
