@@ -58,7 +58,7 @@ describe("logic helpers", () => {
     });
   });
 
-  test("extractPrioritiesFromXlsxRows filters QA_HOLD_PICKING, dedupes locations, and keeps earliest cut time", () => {
+  test("extractPrioritiesFromXlsxRows filters supported QA_HOLD tags, dedupes locations, and keeps earliest cut time", () => {
     const rows = [
       [
         "Container Id",
@@ -67,6 +67,9 @@ describe("logic helpers", () => {
         "Earliest Cut-time",
       ],
       ["C1", "SS4:MEZ111.A", "QA_HOLD_PICKING", "2026-03-11T20:00:00.000Z"],
+      ["C6", "SS4:PK200.A", "QA_HOLD_PUTAWAY", "2026-03-11T19:45:00.000Z"],
+      ["C7", "SS4:RP210.A", "QA_HOLD_REPLENISHMENT", "2026-03-11T19:15:00.000Z"],
+      ["C8", "SS4:RW220.A", "QA_HOLD_REWAREHOUSING", "2026-03-11T18:45:00.000Z"],
       ["C2", "SS4:TR333.A", "OTHER", "2026-03-11T22:00:00.000Z"],
       ["C3", "", "QA_HOLD_PICKING", "2026-03-11T19:00:00.000Z"],
       ["C4", "SS4:AB100.A", "QA_HOLD_PICKING", "2026-03-11T18:00:00.000Z"],
@@ -74,12 +77,21 @@ describe("logic helpers", () => {
     ];
 
     expect(extractPrioritiesFromXlsxRows(rows)).toEqual({
-      values: ["SS4:AB100.A", "SS4:MEZ111.A"],
+      values: [
+        "SS4:AB100.A",
+        "SS4:MEZ111.A",
+        "SS4:PK200.A",
+        "SS4:RP210.A",
+        "SS4:RW220.A",
+      ],
       entries: [
         { location: "SS4:AB100.A", cutTime: "2026-03-11T18:00:00.000Z" },
         { location: "SS4:MEZ111.A", cutTime: "2026-03-11T19:30:00.000Z" },
+        { location: "SS4:PK200.A", cutTime: "2026-03-11T19:45:00.000Z" },
+        { location: "SS4:RP210.A", cutTime: "2026-03-11T19:15:00.000Z" },
+        { location: "SS4:RW220.A", cutTime: "2026-03-11T18:45:00.000Z" },
       ],
-      rowCount: 5,
+      rowCount: 8,
     });
   });
 
