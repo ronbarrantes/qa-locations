@@ -341,14 +341,23 @@ select:focus {
 .settings-grid {
   margin-top: 12px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
-.settings-toggle {
-  margin-top: 12px;
+.settings-grid > div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 4px;
+}
+
+.settings-grid label {
+  margin-top: 0;
+}
+
+.settings-toggle {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
