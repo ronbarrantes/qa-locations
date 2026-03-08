@@ -123,17 +123,19 @@
             <label for="column-gap">Column gap</label>
             <input id="column-gap" type="number" min="0" value="1" />
           </div>
+          <div>
+            <label class="settings-theme" for="theme-mode">
+              Theme
+              <select id="theme-mode">
+                <option value="system">System</option>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         <div class="settings-toggle">
-          <label class="settings-theme" for="theme-mode">
-            Theme
-            <select id="theme-mode">
-              <option value="system">System</option>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-          </label>
           <label class="checkbox">
             <input id="colors-mode" type="checkbox" />
             Colors mode (red/yellow/green)

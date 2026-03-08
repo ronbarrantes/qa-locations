@@ -233,6 +233,10 @@ h2 {
   color: #34d399;
 }
 
+:root[data-theme="light"] .field-status.success {
+  color: #047857;
+}
+
 .field-status.error {
   color: #fb7185;
 }
@@ -343,12 +347,15 @@ select:focus {
 
 .settings-toggle {
   margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
 }
 
 .settings-theme {
   display: grid;
   gap: 6px;
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .settings-theme select {
@@ -369,7 +376,7 @@ select:focus {
 }
 
 .settings-toggle .checkbox + .checkbox {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .checkbox input[type="checkbox"] {

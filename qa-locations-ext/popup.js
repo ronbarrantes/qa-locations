@@ -393,7 +393,7 @@ function renderTable(matrix, priorityToneByLocation) {
 
   const table = document.createElement('table');
   const gapColumns = settingsState.columnGap > 0 ? 1 : Math.max(0, settingsState.columnGap);
-  const gapWidthPx = settingsState.columnGap > 0 ? settingsState.columnGap * 40 : 0;
+  const gapWidthPx = settingsState.columnGap > 0 ? settingsState.columnGap * 16 : 0;
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
 
