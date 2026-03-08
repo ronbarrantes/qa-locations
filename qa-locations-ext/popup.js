@@ -22,6 +22,7 @@ const STORAGE_KEY = 'qa-locations-settings-v1';
 const INPUTS_STORAGE_KEY = 'qa-locations-inputs-v1';
 const VIEW_STORAGE_KEY = 'qa-locations-view-v1';
 const HOLD_VIEW_KEY = 'qa-locations-hold-view-v1';
+const THEME_STORAGE_KEY = 'qa-locations-theme-v1';
 const DEFAULT_SETTINGS = {
   groups: [
     { title: 'pallets', values: ['a', 'b', 'c', 'lud', 'prm', 'slp'] },
@@ -66,6 +67,7 @@ const saveTableImageBtn = document.getElementById('save-table-image');
 const groupsList = document.getElementById('groups-list');
 const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
+const themeModeSelect = document.getElementById('theme-mode');
 const colorsModeToggle = document.getElementById('colors-mode');
 const holdViewToggle = document.getElementById('hold-view');
 
@@ -73,6 +75,8 @@ let settingsState = loadSettings();
 let holdViewEnabled = false;
 let priorityEntriesState = [];
 let locationsState = '';
+let themeMediaQuery = null;
+let currentThemeMode = 'system';
 
 function getLocationsText() {
   return locationsInput ? locationsInput.value : locationsState;
@@ -388,6 +392,8 @@ function renderTable(matrix, priorityToneByLocation) {
   }
 
   const table = document.createElement('table');
+  const gapColumns = settingsState.columnGap > 0 ? 1 : Math.max(0, settingsState.columnGap);
+  const gapWidthPx = settingsState.columnGap > 0 ? settingsState.columnGap * 40 : 0;
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
 
@@ -399,9 +405,13 @@ function renderTable(matrix, priorityToneByLocation) {
     headerRow.appendChild(th);
 
     if (index < matrix.groupTitles.length - 1 && matrix.groupColumns[index] !== undefined) {
-      for (let g = 0; g < settingsState.columnGap; g += 1) {
+      for (let g = 0; g < gapColumns; g += 1) {
         const gap = document.createElement('th');
         gap.classList.add('gap');
+        if (gapWidthPx > 0) {
+          gap.style.width = `${gapWidthPx}px`;
+          gap.style.minWidth = `${gapWidthPx}px`;
+        }
         headerRow.appendChild(gap);
       }
     }
@@ -418,6 +428,10 @@ function renderTable(matrix, priorityToneByLocation) {
       td.textContent = value;
       if (!matrix.headers[idx]) {
         td.classList.add('gap');
+        if (gapWidthPx > 0) {
+          td.style.width = `${gapWidthPx}px`;
+          td.style.minWidth = `${gapWidthPx}px`;
+        }
       }
       if (value) {
         const toneClass = priorityToneByLocation.get(String(value).trim().toUpperCase());
@@ -629,18 +643,74 @@ function createGearIcon() {
   circle.setAttribute('stroke-width', '2');
   svg.appendChild(circle);
 
-  const path = document.createElementNS(svgNS, 'path');
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', 'currentColor');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  path.setAttribute('stroke-width', '2');
-  path.setAttribute(
+  const teeth = document.createElementNS(svgNS, 'path');
+  teeth.setAttribute('fill', 'none');
+  teeth.setAttribute('stroke', 'currentColor');
+  teeth.setAttribute('stroke-linecap', 'round');
+  teeth.setAttribute('stroke-linejoin', 'round');
+  teeth.setAttribute('stroke-width', '2');
+  teeth.setAttribute(
     'd',
-    'M12 2.75v2.5M12 18.75v2.5M2.75 12h2.5M18.75 12h2.5M5.45 5.45l1.8 1.8M16.75 16.75l1.8 1.8M18.55 5.45l-1.8 1.8M7.25 16.75l-1.8 1.8',
+    'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 .99-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 .99 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51.99H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51.99z',
   );
-  svg.appendChild(path);
+  svg.appendChild(teeth);
   return svg;
+}
+
+function getThemePreference() {
+  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+    return savedTheme;
+  }
+  return 'system';
+}
+
+function resolveTheme(themeMode) {
+  if (themeMode === 'light' || themeMode === 'dark') {
+    return themeMode;
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function removeThemeListener() {
+  if (!themeMediaQuery) return;
+  if (typeof themeMediaQuery.removeEventListener === 'function') {
+    themeMediaQuery.removeEventListener('change', applySystemTheme);
+  } else if (typeof themeMediaQuery.removeListener === 'function') {
+    themeMediaQuery.removeListener(applySystemTheme);
+  }
+  themeMediaQuery = null;
+}
+
+function applySystemTheme() {
+  if (currentThemeMode !== 'system') return;
+  document.documentElement.setAttribute('data-theme', resolveTheme('system'));
+}
+
+function setupThemeListener(themeMode) {
+  removeThemeListener();
+  if (themeMode !== 'system' || typeof window.matchMedia !== 'function') {
+    return;
+  }
+
+  themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (typeof themeMediaQuery.addEventListener === 'function') {
+    themeMediaQuery.addEventListener('change', applySystemTheme);
+  } else if (typeof themeMediaQuery.addListener === 'function') {
+    themeMediaQuery.addListener(applySystemTheme);
+  }
+}
+
+function applyTheme(themeMode) {
+  const nextThemeMode = themeMode === 'light' || themeMode === 'dark' ? themeMode : 'system';
+  currentThemeMode = nextThemeMode;
+  window.localStorage.setItem(THEME_STORAGE_KEY, nextThemeMode);
+  document.documentElement.setAttribute('data-theme', resolveTheme(nextThemeMode));
+  setupThemeListener(nextThemeMode);
+
+  if (themeModeSelect) {
+    themeModeSelect.value = nextThemeMode;
+  }
 }
 
 function applyStaticIcons() {
@@ -727,6 +797,7 @@ addGroupBtn.addEventListener('click', () => addGroupToUI());
 resultBackBtn.addEventListener('click', () => showView('main'));
 copyTableImageBtn?.addEventListener('click', copyTableAsPng);
 saveTableImageBtn?.addEventListener('click', saveTableAsPng);
+themeModeSelect?.addEventListener('change', (event) => applyTheme(event.target.value));
 
 holdViewToggle?.addEventListener('change', (event) => {
   setHoldViewEnabled(Boolean(event.target.checked));
@@ -747,6 +818,7 @@ function handlePopupQueryActions() {
 }
 
 async function init() {
+  applyTheme(getThemePreference());
   await loadInputs();
 
   if (handlePopupQueryActions()) {

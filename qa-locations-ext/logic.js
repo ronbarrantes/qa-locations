@@ -453,13 +453,14 @@
     });
 
     const headers = [];
+    const gapColumns = columnGap > 0 ? 1 : Math.max(0, columnGap);
     groupTitles.forEach((title, index) => {
       const cols = groupColumns[index];
       for (let c = 0; c < cols; c += 1) {
         headers.push(title);
       }
       if (index < groupTitles.length - 1) {
-        for (let g = 0; g < columnGap; g += 1) {
+        for (let g = 0; g < gapColumns; g += 1) {
           headers.push("");
         }
       }
@@ -481,7 +482,7 @@
         }
 
         if (index < groupTitles.length - 1) {
-          for (let g = 0; g < columnGap; g += 1) {
+          for (let g = 0; g < gapColumns; g += 1) {
             record.push("");
           }
         }

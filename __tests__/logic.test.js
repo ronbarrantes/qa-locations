@@ -176,6 +176,21 @@ describe("output layout", () => {
     ]);
   });
 
+  test("buildOutputMatrix uses a single gap column when columnGap is 1 or more", () => {
+    const matrix = buildOutputMatrix(
+      ["pallets", "efg"],
+      { pallets: ["L1", "L2"], efg: ["E1", "E2"], unassigned: [] },
+      2,
+      3,
+    );
+
+    expect(matrix.headers).toEqual(["pallets", "", "efg"]);
+    expect(matrix.rows).toEqual([
+      ["L1", "", "E1"],
+      ["L2", "", "E2"],
+    ]);
+  });
+
   test("buildPrioritySet only keeps matches", () => {
     const set = buildPrioritySet(["A", "B"], ["B", "C"]);
     expect(Array.from(set)).toEqual(["B"]);
