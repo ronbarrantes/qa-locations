@@ -10,6 +10,7 @@ const {
 } = logic;
 
 const INPUTS_STORAGE_KEY = 'qa-locations-inputs-v1';
+const THEME_STORAGE_KEY = 'qa-locations-theme-v1';
 
 const pickLocationsBtn = document.getElementById('pick-locations');
 const pickPrioritiesBtn = document.getElementById('pick-priorities');
@@ -20,6 +21,58 @@ const prioritiesPreview = document.getElementById('priorities-preview');
 const locationsStatus = document.getElementById('locations-status');
 const prioritiesStatus = document.getElementById('priorities-status');
 const closeImportBtn = document.getElementById('close-import');
+let themeMediaQuery = null;
+let currentThemeMode = 'system';
+
+function getThemePreference() {
+  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
+    return savedTheme;
+  }
+  return 'system';
+}
+
+function resolveTheme(themeMode) {
+  if (themeMode === 'light' || themeMode === 'dark') {
+    return themeMode;
+  }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applySystemTheme() {
+  if (currentThemeMode !== 'system') return;
+  document.documentElement.setAttribute('data-theme', resolveTheme('system'));
+}
+
+function removeThemeListener() {
+  if (!themeMediaQuery) return;
+  if (typeof themeMediaQuery.removeEventListener === 'function') {
+    themeMediaQuery.removeEventListener('change', applySystemTheme);
+  } else if (typeof themeMediaQuery.removeListener === 'function') {
+    themeMediaQuery.removeListener(applySystemTheme);
+  }
+  themeMediaQuery = null;
+}
+
+function setupThemeListener(themeMode) {
+  removeThemeListener();
+  if (themeMode !== 'system' || typeof window.matchMedia !== 'function') {
+    return;
+  }
+  themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (typeof themeMediaQuery.addEventListener === 'function') {
+    themeMediaQuery.addEventListener('change', applySystemTheme);
+  } else if (typeof themeMediaQuery.addListener === 'function') {
+    themeMediaQuery.addListener(applySystemTheme);
+  }
+}
+
+function applyTheme(themeMode) {
+  const nextThemeMode = themeMode === 'light' || themeMode === 'dark' ? themeMode : 'system';
+  currentThemeMode = nextThemeMode;
+  document.documentElement.setAttribute('data-theme', resolveTheme(nextThemeMode));
+  setupThemeListener(nextThemeMode);
+}
 
 function getStorage() {
   if (window.chrome?.storage?.local) {
@@ -220,6 +273,7 @@ prioritiesFileInput?.addEventListener('change', async (event) => {
 closeImportBtn?.addEventListener('click', () => window.close());
 
 async function init() {
+  applyTheme(getThemePreference());
   applyStaticIcons();
   await loadStoredInputs();
   focusRequestedTarget();
