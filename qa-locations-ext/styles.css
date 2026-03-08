@@ -233,6 +233,10 @@ h2 {
   color: #34d399;
 }
 
+:root[data-theme="light"] .field-status.success {
+  color: #047857;
+}
+
 .field-status.error {
   color: #fb7185;
 }
