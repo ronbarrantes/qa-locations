@@ -362,8 +362,9 @@ select:focus {
 }
 
 .settings-theme {
+  margin-top: 10px;
   display: grid;
-  gap: 6px;
+  gap: 10px;
   margin: 0;
 }
 
@@ -384,7 +385,7 @@ select:focus {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
-.settings-toggle .checkbox + .checkbox {
+.settings-toggle .checkbox {
   margin-top: 0;
 }
 
@@ -581,7 +582,6 @@ button:focus-visible {
 .group-fields .group-values-input:focus {
   background: var(--input-focus-bg);
 }
-
 
 #table-container {
   display: flex;
