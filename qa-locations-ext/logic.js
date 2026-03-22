@@ -311,8 +311,10 @@
         toneMap.set(key, "priority-red");
       } else if (deltaMs <= 5 * 60 * 60 * 1000) {
         toneMap.set(key, "priority-yellow");
-      } else {
+      } else if (deltaMs <= 12 * 60 * 60 * 1000) {
         toneMap.set(key, "priority-green");
+      } else {
+        toneMap.set(key, "priority-none");
       }
     });
 
