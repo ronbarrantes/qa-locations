@@ -1,5 +1,6 @@
 {
   "name": "qa-locations-ext",
+  "version": "0.1.1",
   "private": true,
   "type": "commonjs",
   "scripts": {

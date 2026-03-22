@@ -6,6 +6,9 @@ EXT_DIR="$ROOT_DIR/qa-locations-ext"
 OUTPUT_DIR="$ROOT_DIR/dist"
 OUTPUT_FILE="$OUTPUT_DIR/qa-locations.zip"
 
+# Sync version from package.json to manifest.json before building
+"$ROOT_DIR/sync-version.sh"
+
 mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_FILE"
 
