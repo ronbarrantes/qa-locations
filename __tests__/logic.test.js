@@ -230,4 +230,28 @@ describe("output layout", () => {
     expect(toneMap.get("B")).toBe("priority-yellow");
     expect(toneMap.get("C")).toBeUndefined();
   });
+
+  test("buildPriorityToneByLocation marks configured priority locations as yellow", () => {
+    const now = new Date("2026-03-11T20:00:00.000Z");
+    const toneMap = buildPriorityToneByLocation(
+      ["SS4:MEZ111.A", "SS4:PRM210.A", "SS4:AB100.A"],
+      [{ location: "SS4:AB100.A", cutTime: "2026-03-11T21:00:00.000Z" }],
+      now,
+      true,
+      ["mez", "prm"],
+    );
+
+    expect(toneMap.get("SS4:MEZ111.A")).toBe("priority-yellow");
+    expect(toneMap.get("SS4:PRM210.A")).toBe("priority-yellow");
+    expect(toneMap.get("SS4:AB100.A")).toBe("priority-red");
+  });
+
+  test("normalizeConfig parses priority locations list", () => {
+    const config = normalizeConfig({
+      groups: [{ title: "pallets", values: "a,b,c" }],
+      priorityLocations: "mez, prm yx",
+    });
+
+    expect(config.priorityLocations).toEqual(["mez", "prm", "yx"]);
+  });
 });

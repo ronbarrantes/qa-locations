@@ -26,13 +26,14 @@ const THEME_STORAGE_KEY = 'qa-locations-theme-v1';
 const DEFAULT_SETTINGS = {
   groups: [
     { title: 'pallets', values: ['a', 'b', 'c', 'lud', 'prm', 'slp'] },
-    { title: 'efg', values: ['e', 'f', 'g', 'gft', 'hvc', 'hwk', 'hvb'] },
+    { title: 'efg', values: ['e', 'f', 'g', 'gft', 'hvc', 'hwk', 'hvb', 'put'] },
     { title: 'hjkl', values: ['h', 'j', 'k', 'l'] },
     { title: 'mnst', values: ['m', 'n', 's', 't', 'mez'] },
   ],
   maxRows: 20,
   columnGap: 1,
   colorsMode: false,
+  priorityLocations: ['put'],
 };
 
 const views = {
@@ -65,6 +66,7 @@ const copyTableImageBtn = document.getElementById('copy-table-image');
 const saveTableImageBtn = document.getElementById('save-table-image');
 
 const groupsList = document.getElementById('groups-list');
+const priorityLocationsInput = document.getElementById('priority-locations');
 const maxRowsInput = document.getElementById('max-rows');
 const columnGapInput = document.getElementById('column-gap');
 const themeModeSelect = document.getElementById('theme-mode');
@@ -468,6 +470,7 @@ function createArrangement() {
     priorityEntriesState,
     new Date(),
     config.colorsMode,
+    config.priorityLocations,
   );
 
   renderTable(matrix, priorityToneByLocation);
@@ -501,6 +504,9 @@ function populateSettingsUI(config) {
   columnGapInput.value = config.columnGap;
   if (colorsModeToggle) {
     colorsModeToggle.checked = config.colorsMode !== false;
+  }
+  if (priorityLocationsInput) {
+    priorityLocationsInput.value = (config.priorityLocations || []).join(', ');
   }
 }
 
@@ -743,6 +749,7 @@ function getSettingsFromUI() {
     maxRows: Number(maxRowsInput.value) || 20,
     columnGap: Number(columnGapInput.value) || 0,
     colorsMode: Boolean(colorsModeToggle?.checked),
+    priorityLocations: parseGroupValues(priorityLocationsInput?.value),
   };
 }
 
