@@ -278,6 +278,7 @@
     priorityEntries,
     now = new Date(),
     colorsMode = true,
+    alwaysPriorityLocations = [],
   ) {
     const locationSet = new Set(
       (locations || []).map((loc) => normalizeLocationKey(loc)),
@@ -318,6 +319,27 @@
       }
     });
 
+    const alwaysPriorityPrefixes = new Set(
+      parseGroupValues(alwaysPriorityLocations).map((value) =>
+        String(value || "").trim().toUpperCase(),
+      ),
+    );
+    if (alwaysPriorityPrefixes.size > 0) {
+      (locations || []).forEach((location) => {
+        const locationText = String(location || "").trim();
+        if (!locationText) return;
+        const zonePrefix = extractLetterPrefix(locationText).toUpperCase();
+        if (!zonePrefix) return;
+
+        const isAlwaysPriority = Array.from(alwaysPriorityPrefixes).some(
+          (prefix) => zonePrefix === prefix || zonePrefix.startsWith(prefix),
+        );
+        if (!isAlwaysPriority) return;
+
+        toneMap.set(normalizeLocationKey(locationText), "priority-yellow");
+      });
+    }
+
     return toneMap;
   }
 
@@ -344,6 +366,7 @@
         ? Number(config.columnGap)
         : 1,
       colorsMode: config?.colorsMode === true ? true : false,
+      priorityLocations: parseGroupValues(config?.priorityLocations),
     };
   }
 
