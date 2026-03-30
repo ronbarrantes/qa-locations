@@ -355,12 +355,7 @@
 
         const locationKey = normalizeLocationKey(locationText);
         const currentTone = toneMap.get(locationKey);
-        if (
-          colorsMode &&
-          currentTone &&
-          currentTone !== "priority-white" &&
-          currentTone !== "priority-yellow"
-        ) {
+        if (currentTone && currentTone !== "priority-white") {
           return;
         }
         toneMap.set(locationKey, "priority-yellow");

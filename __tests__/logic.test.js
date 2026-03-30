@@ -266,11 +266,12 @@ describe("output layout", () => {
   test("buildPriorityToneByLocation does not downgrade cut-time urgency when always-priority prefixes match", () => {
     const now = new Date("2026-03-11T20:00:00.000Z");
     const toneMap = buildPriorityToneByLocation(
-      ["SS4:PUT100.A", "SS4:PUT200.A", "SS4:PUT300.A"],
+      ["SS4:PUT100.A", "SS4:PUT200.A", "SS4:PUT300.A", "SS4:AB400.A"],
       [
         { location: "SS4:PUT100.A", cutTime: "2026-03-11T21:00:00.000Z" },
         { location: "SS4:PUT200.A", cutTime: "2026-03-12T02:00:00.000Z" },
         { location: "SS4:PUT300.A", cutTime: "2026-03-12T10:00:00.000Z" },
+        { location: "SS4:AB400.A", cutTime: "2026-03-12T10:00:00.000Z" },
       ],
       now,
       true,
@@ -280,6 +281,7 @@ describe("output layout", () => {
     expect(toneMap.get("SS4:PUT100.A")).toBe("priority-red");
     expect(toneMap.get("SS4:PUT200.A")).toBe("priority-green");
     expect(toneMap.get("SS4:PUT300.A")).toBe("priority-yellow");
+    expect(toneMap.get("SS4:AB400.A")).toBe("priority-white");
   });
 
   test("normalizeConfig parses priority locations list", () => {
