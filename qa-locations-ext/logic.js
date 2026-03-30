@@ -312,30 +312,29 @@
           toneMap.set(key, "priority-white");
         }
       });
-      return toneMap;
+    } else {
+      (priorityEntries || []).forEach((entry) => {
+        const location = String(entry?.location || "").trim();
+        const key = normalizeLocationKey(location);
+        if (!location || !locationSet.has(key)) return;
+
+        const cutTimeIso = entry?.cutTime;
+        if (!cutTimeIso) return;
+        const cutMs = new Date(cutTimeIso).getTime();
+        if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) return;
+
+        const deltaMs = cutMs - nowMs;
+        if (deltaMs <= 2 * 60 * 60 * 1000) {
+          toneMap.set(key, "priority-red");
+        } else if (deltaMs <= 5 * 60 * 60 * 1000) {
+          toneMap.set(key, "priority-yellow");
+        } else if (deltaMs <= 12 * 60 * 60 * 1000) {
+          toneMap.set(key, "priority-green");
+        } else {
+          toneMap.set(key, "priority-white");
+        }
+      });
     }
-
-    (priorityEntries || []).forEach((entry) => {
-      const location = String(entry?.location || "").trim();
-      const key = normalizeLocationKey(location);
-      if (!location || !locationSet.has(key)) return;
-
-      const cutTimeIso = entry?.cutTime;
-      if (!cutTimeIso) return;
-      const cutMs = new Date(cutTimeIso).getTime();
-      if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) return;
-
-      const deltaMs = cutMs - nowMs;
-      if (deltaMs <= 2 * 60 * 60 * 1000) {
-        toneMap.set(key, "priority-red");
-      } else if (deltaMs <= 5 * 60 * 60 * 1000) {
-        toneMap.set(key, "priority-yellow");
-      } else if (deltaMs <= 12 * 60 * 60 * 1000) {
-        toneMap.set(key, "priority-green");
-      } else {
-        toneMap.set(key, "priority-white");
-      }
-    });
 
     const alwaysPriorityPrefixes = new Set(
       parseGroupValues(alwaysPriorityLocations).map((value) =>
@@ -354,7 +353,17 @@
         );
         if (!isAlwaysPriority) return;
 
-        toneMap.set(normalizeLocationKey(locationText), "priority-yellow");
+        const locationKey = normalizeLocationKey(locationText);
+        const currentTone = toneMap.get(locationKey);
+        if (
+          colorsMode &&
+          currentTone &&
+          currentTone !== "priority-white" &&
+          currentTone !== "priority-yellow"
+        ) {
+          return;
+        }
+        toneMap.set(locationKey, "priority-yellow");
       });
     }
 
