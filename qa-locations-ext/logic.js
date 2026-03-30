@@ -285,17 +285,35 @@
     );
     const toneMap = new Map();
 
+    const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
+
     if (!colorsMode) {
       (priorityEntries || []).forEach((entry) => {
         const location = String(entry?.location || "").trim();
         const key = normalizeLocationKey(location);
         if (!location || !locationSet.has(key)) return;
-        toneMap.set(key, "priority-yellow");
+
+        const cutTimeIso = entry?.cutTime;
+        if (!cutTimeIso) {
+          toneMap.set(key, "priority-yellow");
+          return;
+        }
+
+        const cutMs = new Date(cutTimeIso).getTime();
+        if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) {
+          toneMap.set(key, "priority-yellow");
+          return;
+        }
+
+        const deltaMs = cutMs - nowMs;
+        if (deltaMs <= 12 * 60 * 60 * 1000) {
+          toneMap.set(key, "priority-yellow");
+        } else {
+          toneMap.set(key, "priority-white");
+        }
       });
       return toneMap;
     }
-
-    const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
 
     (priorityEntries || []).forEach((entry) => {
       const location = String(entry?.location || "").trim();
@@ -315,7 +333,7 @@
       } else if (deltaMs <= 12 * 60 * 60 * 1000) {
         toneMap.set(key, "priority-green");
       } else {
-        toneMap.set(key, "priority-none");
+        toneMap.set(key, "priority-white");
       }
     });
 

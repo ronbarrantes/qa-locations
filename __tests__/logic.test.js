@@ -199,12 +199,13 @@ describe("output layout", () => {
   test("buildPriorityToneByLocation computes 3 urgency buckets based on now", () => {
     const now = new Date("2026-03-11T20:00:00.000Z");
     const toneMap = buildPriorityToneByLocation(
-      ["A", "B", "C", "D"],
+      ["A", "B", "C", "D", "E"],
       [
         { location: "A", cutTime: "2026-03-11T20:30:00.000Z" },
         { location: "B", cutTime: "2026-03-11T23:00:00.000Z" },
         { location: "C", cutTime: "2026-03-12T05:30:00.000Z" },
         { location: "D", cutTime: "2026-03-11T19:45:00.000Z" },
+        { location: "E", cutTime: "2026-03-12T09:00:00.000Z" },
       ],
       now,
     );
@@ -213,14 +214,16 @@ describe("output layout", () => {
     expect(toneMap.get("B")).toBe("priority-yellow");
     expect(toneMap.get("C")).toBe("priority-green");
     expect(toneMap.get("D")).toBe("priority-red");
+    expect(toneMap.get("E")).toBe("priority-white");
   });
 
-  test("buildPriorityToneByLocation uses yellow for all priorities when colorsMode is off", () => {
+  test("buildPriorityToneByLocation keeps >12h priorities visually white (without dropping priority) when colorsMode is off", () => {
     const toneMap = buildPriorityToneByLocation(
-      ["A", "B", "C"],
+      ["A", "B", "C", "D"],
       [
         { location: "A", cutTime: null },
         { location: "B", cutTime: "2026-03-11T23:00:00.000Z" },
+        { location: "C", cutTime: "2026-03-12T09:00:00.000Z" },
       ],
       new Date("2026-03-11T20:00:00.000Z"),
       false,
@@ -228,7 +231,8 @@ describe("output layout", () => {
 
     expect(toneMap.get("A")).toBe("priority-yellow");
     expect(toneMap.get("B")).toBe("priority-yellow");
-    expect(toneMap.get("C")).toBeUndefined();
+    expect(toneMap.get("C")).toBe("priority-white");
+    expect(toneMap.get("D")).toBeUndefined();
   });
 
   test("buildPriorityToneByLocation marks configured priority locations as yellow", () => {
