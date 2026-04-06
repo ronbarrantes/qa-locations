@@ -56,7 +56,16 @@
 
   function formatPriorityEntries(entries) {
     return (entries || [])
-      .map((entry) => `${entry.location}${entry.cutTime ? ` | ${entry.cutTime}` : ""}`)
+      .filter(
+        (entry) =>
+          entry &&
+          typeof entry === "object" &&
+          typeof entry.location === "string" &&
+          entry.location.trim() !== "",
+      )
+      .map((entry) =>
+        `${entry.location.trim()}${entry.cutTime ? ` | ${entry.cutTime}` : ""}`,
+      )
       .join("\n");
   }
 

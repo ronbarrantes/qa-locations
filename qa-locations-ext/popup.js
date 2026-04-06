@@ -111,11 +111,11 @@ function setLocationsText(value) {
 
 applyStaticIcons();
 
-function showView(viewKey) {
+async function showView(viewKey) {
   Object.values(views).forEach((view) => view.classList.add("hidden"));
   views[viewKey].classList.remove("hidden");
   if (holdViewEnabled) {
-    storage.set(VIEW_STORAGE_KEY, viewKey);
+    await storage.set(VIEW_STORAGE_KEY, viewKey);
   }
 }
 
@@ -141,11 +141,11 @@ async function loadHoldViewEnabled() {
   return saved === true;
 }
 
-function setHoldViewEnabled(enabled) {
+async function setHoldViewEnabled(enabled) {
   holdViewEnabled = enabled;
-  storage.set(HOLD_VIEW_KEY, enabled);
+  await storage.set(HOLD_VIEW_KEY, enabled);
   if (enabled) {
-    storage.set(VIEW_STORAGE_KEY, getCurrentViewKey());
+    await storage.set(VIEW_STORAGE_KEY, getCurrentViewKey());
   }
 }
 
@@ -177,15 +177,15 @@ async function loadInputs() {
   }
 }
 
-function saveInputs() {
-  storage.set(INPUTS_STORAGE_KEY, {
+async function saveInputs() {
+  await storage.set(INPUTS_STORAGE_KEY, {
     locations: getLocationsText(),
     priorityEntries: priorityEntriesState,
   });
 }
 
-function clearInputsStorage() {
-  storage.remove(INPUTS_STORAGE_KEY);
+async function clearInputsStorage() {
+  await storage.remove(INPUTS_STORAGE_KEY);
 }
 
 function setResultActionStatus(message, tone = "") {
@@ -240,7 +240,7 @@ async function importLocationsFromFile(file) {
   const csvText = await file.text();
   const result = extractLocationsFromCSVText(csvText);
   setLocationsText(result.values.join("\n"));
-  saveInputs();
+  await saveInputs();
   setImportStatus(
     "locations",
     `Imported ${result.values.length} unique locations from ${result.rowCount} rows.`,
@@ -253,7 +253,7 @@ async function importPrioritiesFromFile(file) {
   const rows = await readXlsxRows(file);
   const result = extractPrioritiesFromXlsxRows(rows);
   priorityEntriesState = result.entries;
-  saveInputs();
+  await saveInputs();
   setImportStatus(
     "priorities",
     `Imported ${result.entries.length} unique priority locations from ${result.rowCount} rows.`,
@@ -447,7 +447,7 @@ function renderTable(matrix, priorityToneByLocation) {
   tableContainer.appendChild(table);
 }
 
-function createArrangement() {
+async function createArrangement() {
   const locations = uniqueCaseInsensitive(parseLines(getLocationsText())).sort(
     compareLocationCodes,
   );
@@ -455,7 +455,7 @@ function createArrangement() {
   if (locations.length === 0) {
     summary.textContent = "Add at least one location.";
     tableContainer.replaceChildren();
-    showView("result");
+    await showView("result");
     return;
   }
 
@@ -481,22 +481,22 @@ function createArrangement() {
 
   const maxRowsLabel = config.maxRows > 0 ? config.maxRows : "no limit";
   summary.textContent = `${locations.length} locations, ${priorityEntriesState.length} priorities, ${matrix.headers.length} columns, max rows ${maxRowsLabel}, gap ${config.columnGap}.`;
-  showView("result");
+  await showView("result");
 }
 
-function resetForm() {
+async function resetForm() {
   setLocationsText("");
   priorityEntriesState = [];
-  clearInputsStorage();
+  await clearInputsStorage();
 }
 
-function openSettings() {
+async function openSettings() {
   populateSettingsUI(settingsState);
-  showView("settings");
+  await showView("settings");
 }
 
-function closeSettings() {
-  showView("main");
+async function closeSettings() {
+  await showView("main");
 }
 
 function populateSettingsUI(config) {
@@ -713,7 +713,7 @@ function getSettingsFromUI() {
   };
 }
 
-function saveSettingsFromUI() {
+async function saveSettingsFromUI() {
   const config = getSettingsFromUI();
 
   if (config.groups.length === 0) {
@@ -727,16 +727,22 @@ function saveSettingsFromUI() {
   }
 
   saveSettings(config);
-  showView("main");
+  await showView("main");
 }
 
 function resetSettings() {
   populateSettingsUI(settingsState);
 }
 
-createBtn.addEventListener("click", createArrangement);
-resetBtn.addEventListener("click", resetForm);
-locationsInput?.addEventListener("input", saveInputs);
+createBtn.addEventListener("click", () => {
+  void createArrangement();
+});
+resetBtn.addEventListener("click", () => {
+  void resetForm();
+});
+locationsInput?.addEventListener("input", () => {
+  void saveInputs();
+});
 openImportsBtn?.addEventListener("click", () => openImporterPage("locations"));
 pickLocationsBtn?.addEventListener("click", () => {
   setImportStatus("locations", "Choose a CSV file...");
@@ -756,12 +762,20 @@ prioritiesFileInput?.addEventListener("change", async (event) => {
   await handleImportFile("priorities", file);
   event.target.value = "";
 });
-openSettingsBtn.addEventListener("click", openSettings);
-closeSettingsBtn.addEventListener("click", closeSettings);
-settingsSaveBtn.addEventListener("click", saveSettingsFromUI);
+openSettingsBtn.addEventListener("click", () => {
+  void openSettings();
+});
+closeSettingsBtn.addEventListener("click", () => {
+  void closeSettings();
+});
+settingsSaveBtn.addEventListener("click", () => {
+  void saveSettingsFromUI();
+});
 settingsResetBtn.addEventListener("click", resetSettings);
 addGroupBtn.addEventListener("click", () => addGroupToUI());
-resultBackBtn.addEventListener("click", () => showView("main"));
+resultBackBtn.addEventListener("click", () => {
+  void showView("main");
+});
 copyTableImageBtn?.addEventListener("click", copyTableAsPng);
 saveTableImageBtn?.addEventListener("click", saveTableAsPng);
 themeModeSelect?.addEventListener("change", (event) =>
@@ -769,16 +783,16 @@ themeModeSelect?.addEventListener("change", (event) =>
 );
 
 holdViewToggle?.addEventListener("change", (event) => {
-  setHoldViewEnabled(Boolean(event.target.checked));
+  void setHoldViewEnabled(Boolean(event.target.checked));
 });
 
-function handlePopupQueryActions() {
+async function handlePopupQueryActions() {
   const params = new URLSearchParams(window.location.search);
   const shouldAutoCreate = params.get("autocreate") === "1";
   const requestedView = params.get("view");
 
   if (requestedView === "result" || shouldAutoCreate) {
-    createArrangement();
+    await createArrangement();
     return true;
   }
 
@@ -789,7 +803,7 @@ async function init() {
   applyTheme(getThemePreference());
   await loadInputs();
 
-  if (handlePopupQueryActions()) {
+  if (await handlePopupQueryActions()) {
     return;
   }
 
@@ -800,11 +814,11 @@ async function init() {
   if (holdViewEnabled) {
     const lastView = await loadLastViewKey();
     if (lastView === "result") {
-      createArrangement();
+      await createArrangement();
     } else if (lastView === "settings") {
-      openSettings();
+      await openSettings();
     } else {
-      showView(lastView);
+      await showView(lastView);
     }
   }
 }

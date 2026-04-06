@@ -27,6 +27,13 @@ const prioritiesStatus = document.getElementById('priorities-status');
 const closeImportBtn = document.getElementById('close-import');
 const storage = ui.createStorage();
 const themeController = ui.createThemeController(THEME_STORAGE_KEY);
+let storageWriteQueue = Promise.resolve();
+
+function withStorageWriteLock(task) {
+  const run = storageWriteQueue.then(task, task);
+  storageWriteQueue = run.catch(() => {});
+  return run;
+}
 
 function getThemePreference() {
   return ui.getThemePreference(THEME_STORAGE_KEY);
@@ -58,11 +65,13 @@ async function loadStoredInputs() {
 }
 
 async function saveStoredInputs(nextPartial) {
-  const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
-  await storage.set(INPUTS_STORAGE_KEY, {
-    locations: typeof current.locations === 'string' ? current.locations : '',
-    priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
-    ...nextPartial,
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: typeof current.locations === 'string' ? current.locations : '',
+      priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
+      ...nextPartial,
+    });
   });
 }
 
@@ -94,7 +103,13 @@ async function importLocations(file) {
   const result = extractLocationsFromCSVText(csvText);
   const text = result.values.join('\n');
   locationsPreview.value = text;
-  await saveStoredInputs({ locations: text });
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: text,
+      priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
+    });
+  });
   setStatus(
     'locations',
     `Imported ${result.values.length} unique locations from ${result.rowCount} rows.`,
@@ -108,7 +123,13 @@ async function importPriorities(file) {
   const result = extractPrioritiesFromXlsxRows(rows);
   const text = ui.formatPriorityEntries(result.entries);
   prioritiesPreview.value = text;
-  await saveStoredInputs({ priorityEntries: result.entries });
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: typeof current.locations === 'string' ? current.locations : '',
+      priorityEntries: result.entries,
+    });
+  });
   setStatus(
     'priorities',
     `Imported ${result.entries.length} unique priority locations from ${result.rowCount} rows.`,

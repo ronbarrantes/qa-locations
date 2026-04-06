@@ -95,6 +95,19 @@ describe("logic helpers", () => {
     });
   });
 
+  test("extractPrioritiesFromXlsxRows falls back to Cut Time when Earliest Cut-time is blank", () => {
+    const rows = [
+      ["Current Location", "Container Tag", "Earliest Cut-time", "Cut Time"],
+      ["SS4:AB100.A", "QA_HOLD_PICKING", "", "2026-03-11T18:00:00.000Z"],
+    ];
+
+    expect(extractPrioritiesFromXlsxRows(rows)).toEqual({
+      values: ["SS4:AB100.A"],
+      entries: [{ location: "SS4:AB100.A", cutTime: "2026-03-11T18:00:00.000Z" }],
+      rowCount: 1,
+    });
+  });
+
   test("parseCutTimeValue parses excel serial and display string values", () => {
     expect(parseCutTimeValue(46103.9625)).toBe("2026-03-22T23:06:00.000Z");
     expect(parseCutTimeValue("3/11/2026 10:51:00 PM")).not.toBeNull();

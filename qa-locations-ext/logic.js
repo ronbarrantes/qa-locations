@@ -225,10 +225,7 @@
       headers,
       XLSX_EARLIEST_CUT_TIME_COLUMN,
     );
-    const cutTimeIdx =
-      earliestCutTimeIdx !== -1
-        ? earliestCutTimeIdx
-        : getColumnIndex(headers, XLSX_CUT_TIME_COLUMN);
+    const cutTimeIdx = getColumnIndex(headers, XLSX_CUT_TIME_COLUMN);
 
     const prioritiesByLocation = new Map();
     rows.slice(1).forEach((row) => {
@@ -238,9 +235,13 @@
       const location = String(row[locationIdx] ?? "").trim();
       if (!location) return;
 
-      const cutTime = parseCutTimeValue(
-        cutTimeIdx === -1 ? undefined : row[cutTimeIdx],
-      );
+      const earliestCutTime =
+        earliestCutTimeIdx === -1
+          ? null
+          : parseCutTimeValue(row[earliestCutTimeIdx]);
+      const cutTime =
+        earliestCutTime ||
+        (cutTimeIdx === -1 ? null : parseCutTimeValue(row[cutTimeIdx]));
       const key = normalizeLocationKey(location);
       const prev = prioritiesByLocation.get(key);
       if (!prev) {
