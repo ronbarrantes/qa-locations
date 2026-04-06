@@ -3,7 +3,7 @@
   "name": "QA Locations MVP",
   "author": "Ron Barrantes <ronbarrantes@gmail.com>",
   "description": "Create a quick locations arrangement table with priorities highlighting.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "permissions": ["clipboardWrite"],
   "icons": {
     "16": "icons/icon16.png",

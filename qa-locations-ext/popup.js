@@ -1,7 +1,11 @@
 const logic = window.QALogic;
+const ui = window.QAUiUtils;
 
 if (!logic) {
   throw new Error("QALogic not loaded");
+}
+if (!ui) {
+  throw new Error("QAUiUtils not loaded");
 }
 
 const {
@@ -84,8 +88,15 @@ let settingsState = loadSettings();
 let holdViewEnabled = false;
 let priorityEntriesState = [];
 let locationsState = "";
-let themeMediaQuery = null;
-let currentThemeMode = "system";
+const storage = ui.createStorage();
+const themeController = ui.createThemeController(
+  THEME_STORAGE_KEY,
+  (nextThemeMode) => {
+    if (themeModeSelect) {
+      themeModeSelect.value = nextThemeMode;
+    }
+  },
+);
 
 function getLocationsText() {
   return locationsInput ? locationsInput.value : locationsState;
@@ -97,43 +108,6 @@ function setLocationsText(value) {
     locationsInput.value = locationsState;
   }
 }
-
-function getStorage() {
-  if (window.chrome?.storage?.local) {
-    return {
-      async get(key) {
-        const result = await window.chrome.storage.local.get(key);
-        return result?.[key];
-      },
-      async set(key, value) {
-        await window.chrome.storage.local.set({ [key]: value });
-      },
-      async remove(key) {
-        await window.chrome.storage.local.remove(key);
-      },
-    };
-  }
-  return {
-    async get(key) {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) return undefined;
-      try {
-        return JSON.parse(raw);
-      } catch (err) {
-        console.warn("Failed to parse stored value.", err);
-        return undefined;
-      }
-    },
-    async set(key, value) {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    },
-    async remove(key) {
-      window.localStorage.removeItem(key);
-    },
-  };
-}
-
-const storage = getStorage();
 
 applyStaticIcons();
 
@@ -232,19 +206,6 @@ function setImportStatus(kind, message, tone = "") {
   if (tone) {
     el.classList.add(tone);
   }
-}
-
-function openPicker(inputEl) {
-  if (!inputEl) return;
-  try {
-    if (typeof inputEl.showPicker === "function") {
-      inputEl.showPicker();
-      return;
-    }
-  } catch (err) {
-    console.warn("showPicker failed, using click().", err);
-  }
-  inputEl.click();
 }
 
 async function readXlsxRows(file) {
@@ -709,69 +670,11 @@ function createGearIcon() {
 }
 
 function getThemePreference() {
-  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (
-    savedTheme === "light" ||
-    savedTheme === "dark" ||
-    savedTheme === "system"
-  ) {
-    return savedTheme;
-  }
-  return "system";
-}
-
-function resolveTheme(themeMode) {
-  if (themeMode === "light" || themeMode === "dark") {
-    return themeMode;
-  }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-function removeThemeListener() {
-  if (!themeMediaQuery) return;
-  if (typeof themeMediaQuery.removeEventListener === "function") {
-    themeMediaQuery.removeEventListener("change", applySystemTheme);
-  } else if (typeof themeMediaQuery.removeListener === "function") {
-    themeMediaQuery.removeListener(applySystemTheme);
-  }
-  themeMediaQuery = null;
-}
-
-function applySystemTheme() {
-  if (currentThemeMode !== "system") return;
-  document.documentElement.setAttribute("data-theme", resolveTheme("system"));
-}
-
-function setupThemeListener(themeMode) {
-  removeThemeListener();
-  if (themeMode !== "system" || typeof window.matchMedia !== "function") {
-    return;
-  }
-
-  themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  if (typeof themeMediaQuery.addEventListener === "function") {
-    themeMediaQuery.addEventListener("change", applySystemTheme);
-  } else if (typeof themeMediaQuery.addListener === "function") {
-    themeMediaQuery.addListener(applySystemTheme);
-  }
+  return ui.getThemePreference(THEME_STORAGE_KEY);
 }
 
 function applyTheme(themeMode) {
-  const nextThemeMode =
-    themeMode === "light" || themeMode === "dark" ? themeMode : "system";
-  currentThemeMode = nextThemeMode;
-  window.localStorage.setItem(THEME_STORAGE_KEY, nextThemeMode);
-  document.documentElement.setAttribute(
-    "data-theme",
-    resolveTheme(nextThemeMode),
-  );
-  setupThemeListener(nextThemeMode);
-
-  if (themeModeSelect) {
-    themeModeSelect.value = nextThemeMode;
-  }
+  themeController.applyTheme(themeMode);
 }
 
 function applyStaticIcons() {
@@ -837,11 +740,11 @@ locationsInput?.addEventListener("input", saveInputs);
 openImportsBtn?.addEventListener("click", () => openImporterPage("locations"));
 pickLocationsBtn?.addEventListener("click", () => {
   setImportStatus("locations", "Choose a CSV file...");
-  openPicker(locationsFileInput);
+  ui.openPicker(locationsFileInput);
 });
 pickPrioritiesBtn?.addEventListener("click", () => {
   setImportStatus("priorities", "Choose an XLSX file...");
-  openPicker(prioritiesFileInput);
+  ui.openPicker(prioritiesFileInput);
 });
 locationsFileInput?.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
