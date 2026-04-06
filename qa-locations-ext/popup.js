@@ -1,7 +1,11 @@
 const logic = window.QALogic;
+const ui = window.QAUiUtils;
 
 if (!logic) {
   throw new Error("QALogic not loaded");
+}
+if (!ui) {
+  throw new Error("QAUiUtils not loaded");
 }
 
 const {
@@ -84,8 +88,15 @@ let settingsState = loadSettings();
 let holdViewEnabled = false;
 let priorityEntriesState = [];
 let locationsState = "";
-let themeMediaQuery = null;
-let currentThemeMode = "system";
+const storage = ui.createStorage();
+const themeController = ui.createThemeController(
+  THEME_STORAGE_KEY,
+  (nextThemeMode) => {
+    if (themeModeSelect) {
+      themeModeSelect.value = nextThemeMode;
+    }
+  },
+);
 
 function getLocationsText() {
   return locationsInput ? locationsInput.value : locationsState;
@@ -98,50 +109,13 @@ function setLocationsText(value) {
   }
 }
 
-function getStorage() {
-  if (window.chrome?.storage?.local) {
-    return {
-      async get(key) {
-        const result = await window.chrome.storage.local.get(key);
-        return result?.[key];
-      },
-      async set(key, value) {
-        await window.chrome.storage.local.set({ [key]: value });
-      },
-      async remove(key) {
-        await window.chrome.storage.local.remove(key);
-      },
-    };
-  }
-  return {
-    async get(key) {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) return undefined;
-      try {
-        return JSON.parse(raw);
-      } catch (err) {
-        console.warn("Failed to parse stored value.", err);
-        return undefined;
-      }
-    },
-    async set(key, value) {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    },
-    async remove(key) {
-      window.localStorage.removeItem(key);
-    },
-  };
-}
-
-const storage = getStorage();
-
 applyStaticIcons();
 
-function showView(viewKey) {
+async function showView(viewKey) {
   Object.values(views).forEach((view) => view.classList.add("hidden"));
   views[viewKey].classList.remove("hidden");
   if (holdViewEnabled) {
-    storage.set(VIEW_STORAGE_KEY, viewKey);
+    await storage.set(VIEW_STORAGE_KEY, viewKey);
   }
 }
 
@@ -167,11 +141,11 @@ async function loadHoldViewEnabled() {
   return saved === true;
 }
 
-function setHoldViewEnabled(enabled) {
+async function setHoldViewEnabled(enabled) {
   holdViewEnabled = enabled;
-  storage.set(HOLD_VIEW_KEY, enabled);
+  await storage.set(HOLD_VIEW_KEY, enabled);
   if (enabled) {
-    storage.set(VIEW_STORAGE_KEY, getCurrentViewKey());
+    await storage.set(VIEW_STORAGE_KEY, getCurrentViewKey());
   }
 }
 
@@ -203,15 +177,15 @@ async function loadInputs() {
   }
 }
 
-function saveInputs() {
-  storage.set(INPUTS_STORAGE_KEY, {
+async function saveInputs() {
+  await storage.set(INPUTS_STORAGE_KEY, {
     locations: getLocationsText(),
     priorityEntries: priorityEntriesState,
   });
 }
 
-function clearInputsStorage() {
-  storage.remove(INPUTS_STORAGE_KEY);
+async function clearInputsStorage() {
+  await storage.remove(INPUTS_STORAGE_KEY);
 }
 
 function setResultActionStatus(message, tone = "") {
@@ -232,19 +206,6 @@ function setImportStatus(kind, message, tone = "") {
   if (tone) {
     el.classList.add(tone);
   }
-}
-
-function openPicker(inputEl) {
-  if (!inputEl) return;
-  try {
-    if (typeof inputEl.showPicker === "function") {
-      inputEl.showPicker();
-      return;
-    }
-  } catch (err) {
-    console.warn("showPicker failed, using click().", err);
-  }
-  inputEl.click();
 }
 
 async function readXlsxRows(file) {
@@ -279,7 +240,7 @@ async function importLocationsFromFile(file) {
   const csvText = await file.text();
   const result = extractLocationsFromCSVText(csvText);
   setLocationsText(result.values.join("\n"));
-  saveInputs();
+  await saveInputs();
   setImportStatus(
     "locations",
     `Imported ${result.values.length} unique locations from ${result.rowCount} rows.`,
@@ -292,7 +253,7 @@ async function importPrioritiesFromFile(file) {
   const rows = await readXlsxRows(file);
   const result = extractPrioritiesFromXlsxRows(rows);
   priorityEntriesState = result.entries;
-  saveInputs();
+  await saveInputs();
   setImportStatus(
     "priorities",
     `Imported ${result.entries.length} unique priority locations from ${result.rowCount} rows.`,
@@ -486,7 +447,7 @@ function renderTable(matrix, priorityToneByLocation) {
   tableContainer.appendChild(table);
 }
 
-function createArrangement() {
+async function createArrangement() {
   const locations = uniqueCaseInsensitive(parseLines(getLocationsText())).sort(
     compareLocationCodes,
   );
@@ -494,7 +455,7 @@ function createArrangement() {
   if (locations.length === 0) {
     summary.textContent = "Add at least one location.";
     tableContainer.replaceChildren();
-    showView("result");
+    await showView("result");
     return;
   }
 
@@ -520,22 +481,22 @@ function createArrangement() {
 
   const maxRowsLabel = config.maxRows > 0 ? config.maxRows : "no limit";
   summary.textContent = `${locations.length} locations, ${priorityEntriesState.length} priorities, ${matrix.headers.length} columns, max rows ${maxRowsLabel}, gap ${config.columnGap}.`;
-  showView("result");
+  await showView("result");
 }
 
-function resetForm() {
+async function resetForm() {
   setLocationsText("");
   priorityEntriesState = [];
-  clearInputsStorage();
+  await clearInputsStorage();
 }
 
-function openSettings() {
+async function openSettings() {
   populateSettingsUI(settingsState);
-  showView("settings");
+  await showView("settings");
 }
 
-function closeSettings() {
-  showView("main");
+async function closeSettings() {
+  await showView("main");
 }
 
 function populateSettingsUI(config) {
@@ -709,69 +670,11 @@ function createGearIcon() {
 }
 
 function getThemePreference() {
-  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (
-    savedTheme === "light" ||
-    savedTheme === "dark" ||
-    savedTheme === "system"
-  ) {
-    return savedTheme;
-  }
-  return "system";
-}
-
-function resolveTheme(themeMode) {
-  if (themeMode === "light" || themeMode === "dark") {
-    return themeMode;
-  }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-function removeThemeListener() {
-  if (!themeMediaQuery) return;
-  if (typeof themeMediaQuery.removeEventListener === "function") {
-    themeMediaQuery.removeEventListener("change", applySystemTheme);
-  } else if (typeof themeMediaQuery.removeListener === "function") {
-    themeMediaQuery.removeListener(applySystemTheme);
-  }
-  themeMediaQuery = null;
-}
-
-function applySystemTheme() {
-  if (currentThemeMode !== "system") return;
-  document.documentElement.setAttribute("data-theme", resolveTheme("system"));
-}
-
-function setupThemeListener(themeMode) {
-  removeThemeListener();
-  if (themeMode !== "system" || typeof window.matchMedia !== "function") {
-    return;
-  }
-
-  themeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  if (typeof themeMediaQuery.addEventListener === "function") {
-    themeMediaQuery.addEventListener("change", applySystemTheme);
-  } else if (typeof themeMediaQuery.addListener === "function") {
-    themeMediaQuery.addListener(applySystemTheme);
-  }
+  return ui.getThemePreference(THEME_STORAGE_KEY);
 }
 
 function applyTheme(themeMode) {
-  const nextThemeMode =
-    themeMode === "light" || themeMode === "dark" ? themeMode : "system";
-  currentThemeMode = nextThemeMode;
-  window.localStorage.setItem(THEME_STORAGE_KEY, nextThemeMode);
-  document.documentElement.setAttribute(
-    "data-theme",
-    resolveTheme(nextThemeMode),
-  );
-  setupThemeListener(nextThemeMode);
-
-  if (themeModeSelect) {
-    themeModeSelect.value = nextThemeMode;
-  }
+  themeController.applyTheme(themeMode);
 }
 
 function applyStaticIcons() {
@@ -810,7 +713,7 @@ function getSettingsFromUI() {
   };
 }
 
-function saveSettingsFromUI() {
+async function saveSettingsFromUI() {
   const config = getSettingsFromUI();
 
   if (config.groups.length === 0) {
@@ -824,24 +727,30 @@ function saveSettingsFromUI() {
   }
 
   saveSettings(config);
-  showView("main");
+  await showView("main");
 }
 
 function resetSettings() {
   populateSettingsUI(settingsState);
 }
 
-createBtn.addEventListener("click", createArrangement);
-resetBtn.addEventListener("click", resetForm);
-locationsInput?.addEventListener("input", saveInputs);
+createBtn.addEventListener("click", () => {
+  void createArrangement();
+});
+resetBtn.addEventListener("click", () => {
+  void resetForm();
+});
+locationsInput?.addEventListener("input", () => {
+  void saveInputs();
+});
 openImportsBtn?.addEventListener("click", () => openImporterPage("locations"));
 pickLocationsBtn?.addEventListener("click", () => {
   setImportStatus("locations", "Choose a CSV file...");
-  openPicker(locationsFileInput);
+  ui.openPicker(locationsFileInput);
 });
 pickPrioritiesBtn?.addEventListener("click", () => {
   setImportStatus("priorities", "Choose an XLSX file...");
-  openPicker(prioritiesFileInput);
+  ui.openPicker(prioritiesFileInput);
 });
 locationsFileInput?.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
@@ -853,12 +762,20 @@ prioritiesFileInput?.addEventListener("change", async (event) => {
   await handleImportFile("priorities", file);
   event.target.value = "";
 });
-openSettingsBtn.addEventListener("click", openSettings);
-closeSettingsBtn.addEventListener("click", closeSettings);
-settingsSaveBtn.addEventListener("click", saveSettingsFromUI);
+openSettingsBtn.addEventListener("click", () => {
+  void openSettings();
+});
+closeSettingsBtn.addEventListener("click", () => {
+  void closeSettings();
+});
+settingsSaveBtn.addEventListener("click", () => {
+  void saveSettingsFromUI();
+});
 settingsResetBtn.addEventListener("click", resetSettings);
 addGroupBtn.addEventListener("click", () => addGroupToUI());
-resultBackBtn.addEventListener("click", () => showView("main"));
+resultBackBtn.addEventListener("click", () => {
+  void showView("main");
+});
 copyTableImageBtn?.addEventListener("click", copyTableAsPng);
 saveTableImageBtn?.addEventListener("click", saveTableAsPng);
 themeModeSelect?.addEventListener("change", (event) =>
@@ -866,16 +783,16 @@ themeModeSelect?.addEventListener("change", (event) =>
 );
 
 holdViewToggle?.addEventListener("change", (event) => {
-  setHoldViewEnabled(Boolean(event.target.checked));
+  void setHoldViewEnabled(Boolean(event.target.checked));
 });
 
-function handlePopupQueryActions() {
+async function handlePopupQueryActions() {
   const params = new URLSearchParams(window.location.search);
   const shouldAutoCreate = params.get("autocreate") === "1";
   const requestedView = params.get("view");
 
   if (requestedView === "result" || shouldAutoCreate) {
-    createArrangement();
+    await createArrangement();
     return true;
   }
 
@@ -886,7 +803,7 @@ async function init() {
   applyTheme(getThemePreference());
   await loadInputs();
 
-  if (handlePopupQueryActions()) {
+  if (await handlePopupQueryActions()) {
     return;
   }
 
@@ -897,11 +814,11 @@ async function init() {
   if (holdViewEnabled) {
     const lastView = await loadLastViewKey();
     if (lastView === "result") {
-      createArrangement();
+      await createArrangement();
     } else if (lastView === "settings") {
-      openSettings();
+      await openSettings();
     } else {
-      showView(lastView);
+      await showView(lastView);
     }
   }
 }

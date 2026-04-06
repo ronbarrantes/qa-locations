@@ -23,6 +23,13 @@
     "QA_HOLD_REPLENISHMENT",
     "QA_HOLD_REWAREHOUSING",
   ]);
+  const HOUR_MS = 60 * 60 * 1000;
+  const COLORS_MODE_THRESHOLDS = {
+    red: 2 * HOUR_MS,
+    yellow: 5 * HOUR_MS,
+    green: 12 * HOUR_MS,
+  };
+  const MONOCHROME_PRIORITY_THRESHOLD = 12 * HOUR_MS;
 
   function parseLines(raw) {
     return String(raw || "")
@@ -214,10 +221,11 @@
       );
     }
 
-    const cutTimeIdx =
-      getColumnIndex(headers, XLSX_EARLIEST_CUT_TIME_COLUMN) !== -1
-        ? getColumnIndex(headers, XLSX_EARLIEST_CUT_TIME_COLUMN)
-        : getColumnIndex(headers, XLSX_CUT_TIME_COLUMN);
+    const earliestCutTimeIdx = getColumnIndex(
+      headers,
+      XLSX_EARLIEST_CUT_TIME_COLUMN,
+    );
+    const cutTimeIdx = getColumnIndex(headers, XLSX_CUT_TIME_COLUMN);
 
     const prioritiesByLocation = new Map();
     rows.slice(1).forEach((row) => {
@@ -227,9 +235,13 @@
       const location = String(row[locationIdx] ?? "").trim();
       if (!location) return;
 
-      const cutTime = parseCutTimeValue(
-        cutTimeIdx === -1 ? undefined : row[cutTimeIdx],
-      );
+      const earliestCutTime =
+        earliestCutTimeIdx === -1
+          ? null
+          : parseCutTimeValue(row[earliestCutTimeIdx]);
+      const cutTime =
+        earliestCutTime ||
+        (cutTimeIdx === -1 ? null : parseCutTimeValue(row[cutTimeIdx]));
       const key = normalizeLocationKey(location);
       const prev = prioritiesByLocation.get(key);
       if (!prev) {
@@ -273,6 +285,21 @@
     return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
   }
 
+  function classifyCutTimeTone(deltaMs, colorsMode) {
+    if (Number.isNaN(deltaMs)) return null;
+
+    if (!colorsMode) {
+      return deltaMs <= MONOCHROME_PRIORITY_THRESHOLD
+        ? "priority-yellow"
+        : "priority-white";
+    }
+
+    if (deltaMs <= COLORS_MODE_THRESHOLDS.red) return "priority-red";
+    if (deltaMs <= COLORS_MODE_THRESHOLDS.yellow) return "priority-yellow";
+    if (deltaMs <= COLORS_MODE_THRESHOLDS.green) return "priority-green";
+    return "priority-white";
+  }
+
   function buildPriorityToneByLocation(
     locations,
     priorityEntries,
@@ -287,54 +314,26 @@
 
     const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
 
-    if (!colorsMode) {
-      (priorityEntries || []).forEach((entry) => {
-        const location = String(entry?.location || "").trim();
-        const key = normalizeLocationKey(location);
-        if (!location || !locationSet.has(key)) return;
+    (priorityEntries || []).forEach((entry) => {
+      const location = String(entry?.location || "").trim();
+      const key = normalizeLocationKey(location);
+      if (!location || !locationSet.has(key)) return;
 
-        const cutTimeIso = entry?.cutTime;
-        if (!cutTimeIso) {
-          toneMap.set(key, "priority-yellow");
-          return;
-        }
+      const cutTimeIso = entry?.cutTime;
+      if (!cutTimeIso) {
+        if (!colorsMode) toneMap.set(key, "priority-yellow");
+        return;
+      }
 
-        const cutMs = new Date(cutTimeIso).getTime();
-        if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) {
-          toneMap.set(key, "priority-yellow");
-          return;
-        }
+      const cutMs = new Date(cutTimeIso).getTime();
+      if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) {
+        if (!colorsMode) toneMap.set(key, "priority-yellow");
+        return;
+      }
 
-        const deltaMs = cutMs - nowMs;
-        if (deltaMs <= 12 * 60 * 60 * 1000) {
-          toneMap.set(key, "priority-yellow");
-        } else {
-          toneMap.set(key, "priority-white");
-        }
-      });
-    } else {
-      (priorityEntries || []).forEach((entry) => {
-        const location = String(entry?.location || "").trim();
-        const key = normalizeLocationKey(location);
-        if (!location || !locationSet.has(key)) return;
-
-        const cutTimeIso = entry?.cutTime;
-        if (!cutTimeIso) return;
-        const cutMs = new Date(cutTimeIso).getTime();
-        if (Number.isNaN(cutMs) || Number.isNaN(nowMs)) return;
-
-        const deltaMs = cutMs - nowMs;
-        if (deltaMs <= 2 * 60 * 60 * 1000) {
-          toneMap.set(key, "priority-red");
-        } else if (deltaMs <= 5 * 60 * 60 * 1000) {
-          toneMap.set(key, "priority-yellow");
-        } else if (deltaMs <= 12 * 60 * 60 * 1000) {
-          toneMap.set(key, "priority-green");
-        } else {
-          toneMap.set(key, "priority-white");
-        }
-      });
-    }
+      const tone = classifyCutTimeTone(cutMs - nowMs, colorsMode);
+      if (tone) toneMap.set(key, tone);
+    });
 
     const alwaysPriorityPrefixes = new Set(
       parseGroupValues(alwaysPriorityLocations).map((value) =>

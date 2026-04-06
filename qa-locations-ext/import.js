@@ -1,7 +1,11 @@
 const logic = window.QALogic;
+const ui = window.QAUiUtils;
 
 if (!logic) {
   throw new Error('QALogic not loaded');
+}
+if (!ui) {
+  throw new Error('QAUiUtils not loaded');
 }
 
 const {
@@ -21,90 +25,23 @@ const prioritiesPreview = document.getElementById('priorities-preview');
 const locationsStatus = document.getElementById('locations-status');
 const prioritiesStatus = document.getElementById('priorities-status');
 const closeImportBtn = document.getElementById('close-import');
-let themeMediaQuery = null;
-let currentThemeMode = 'system';
+const storage = ui.createStorage();
+const themeController = ui.createThemeController(THEME_STORAGE_KEY);
+let storageWriteQueue = Promise.resolve();
+
+function withStorageWriteLock(task) {
+  const run = storageWriteQueue.then(task, task);
+  storageWriteQueue = run.catch(() => {});
+  return run;
+}
 
 function getThemePreference() {
-  const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  if (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system') {
-    return savedTheme;
-  }
-  return 'system';
-}
-
-function resolveTheme(themeMode) {
-  if (themeMode === 'light' || themeMode === 'dark') {
-    return themeMode;
-  }
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function applySystemTheme() {
-  if (currentThemeMode !== 'system') return;
-  document.documentElement.setAttribute('data-theme', resolveTheme('system'));
-}
-
-function removeThemeListener() {
-  if (!themeMediaQuery) return;
-  if (typeof themeMediaQuery.removeEventListener === 'function') {
-    themeMediaQuery.removeEventListener('change', applySystemTheme);
-  } else if (typeof themeMediaQuery.removeListener === 'function') {
-    themeMediaQuery.removeListener(applySystemTheme);
-  }
-  themeMediaQuery = null;
-}
-
-function setupThemeListener(themeMode) {
-  removeThemeListener();
-  if (themeMode !== 'system' || typeof window.matchMedia !== 'function') {
-    return;
-  }
-  themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  if (typeof themeMediaQuery.addEventListener === 'function') {
-    themeMediaQuery.addEventListener('change', applySystemTheme);
-  } else if (typeof themeMediaQuery.addListener === 'function') {
-    themeMediaQuery.addListener(applySystemTheme);
-  }
+  return ui.getThemePreference(THEME_STORAGE_KEY);
 }
 
 function applyTheme(themeMode) {
-  const nextThemeMode = themeMode === 'light' || themeMode === 'dark' ? themeMode : 'system';
-  currentThemeMode = nextThemeMode;
-  document.documentElement.setAttribute('data-theme', resolveTheme(nextThemeMode));
-  setupThemeListener(nextThemeMode);
+  themeController.applyTheme(themeMode);
 }
-
-function getStorage() {
-  if (window.chrome?.storage?.local) {
-    return {
-      async get(key) {
-        const result = await window.chrome.storage.local.get(key);
-        return result?.[key];
-      },
-      async set(key, value) {
-        await window.chrome.storage.local.set({ [key]: value });
-      },
-    };
-  }
-
-  return {
-    async get(key) {
-      const raw = window.localStorage.getItem(key);
-      if (!raw) return undefined;
-      try {
-        return JSON.parse(raw);
-      } catch (err) {
-        console.warn('Failed to parse stored value.', err);
-        return undefined;
-      }
-    },
-    async set(key, value) {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    },
-  };
-}
-
-const storage = getStorage();
 
 function setStatus(kind, message, tone = '') {
   const el = kind === 'locations' ? locationsStatus : prioritiesStatus;
@@ -123,18 +60,18 @@ async function loadStoredInputs() {
     locationsPreview.value = saved.locations;
   }
   if (Array.isArray(saved.priorityEntries)) {
-    prioritiesPreview.value = saved.priorityEntries
-      .map((entry) => `${entry.location}${entry.cutTime ? ` | ${entry.cutTime}` : ''}`)
-      .join('\n');
+    prioritiesPreview.value = ui.formatPriorityEntries(saved.priorityEntries);
   }
 }
 
 async function saveStoredInputs(nextPartial) {
-  const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
-  await storage.set(INPUTS_STORAGE_KEY, {
-    locations: typeof current.locations === 'string' ? current.locations : '',
-    priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
-    ...nextPartial,
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: typeof current.locations === 'string' ? current.locations : '',
+      priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
+      ...nextPartial,
+    });
   });
 }
 
@@ -160,26 +97,19 @@ async function readXlsxRows(file) {
   return rows.map((row) => (Array.isArray(row) ? row : []));
 }
 
-function openPicker(inputEl) {
-  if (!inputEl) return;
-  try {
-    if (typeof inputEl.showPicker === 'function') {
-      inputEl.showPicker();
-      return;
-    }
-  } catch (err) {
-    console.warn('showPicker failed, using click().', err);
-  }
-  inputEl.click();
-}
-
 async function importLocations(file) {
   setStatus('locations', `Reading ${file.name}...`);
   const csvText = await file.text();
   const result = extractLocationsFromCSVText(csvText);
   const text = result.values.join('\n');
   locationsPreview.value = text;
-  await saveStoredInputs({ locations: text });
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: text,
+      priorityEntries: Array.isArray(current.priorityEntries) ? current.priorityEntries : [],
+    });
+  });
   setStatus(
     'locations',
     `Imported ${result.values.length} unique locations from ${result.rowCount} rows.`,
@@ -191,11 +121,15 @@ async function importPriorities(file) {
   setStatus('priorities', `Reading ${file.name}...`);
   const rows = await readXlsxRows(file);
   const result = extractPrioritiesFromXlsxRows(rows);
-  const text = result.entries
-    .map((entry) => `${entry.location}${entry.cutTime ? ` | ${entry.cutTime}` : ''}`)
-    .join('\n');
+  const text = ui.formatPriorityEntries(result.entries);
   prioritiesPreview.value = text;
-  await saveStoredInputs({ priorityEntries: result.entries });
+  await withStorageWriteLock(async () => {
+    const current = (await storage.get(INPUTS_STORAGE_KEY)) || {};
+    await storage.set(INPUTS_STORAGE_KEY, {
+      locations: typeof current.locations === 'string' ? current.locations : '',
+      priorityEntries: result.entries,
+    });
+  });
   setStatus(
     'priorities',
     `Imported ${result.entries.length} unique priority locations from ${result.rowCount} rows.`,
@@ -250,12 +184,12 @@ function focusRequestedTarget() {
 
 pickLocationsBtn?.addEventListener('click', () => {
   setStatus('locations', 'Choose a CSV file...');
-  openPicker(locationsFileInput);
+  ui.openPicker(locationsFileInput);
 });
 
 pickPrioritiesBtn?.addEventListener('click', () => {
   setStatus('priorities', 'Choose an XLSX file...');
-  openPicker(prioritiesFileInput);
+  ui.openPicker(prioritiesFileInput);
 });
 
 locationsFileInput?.addEventListener('change', async (event) => {
