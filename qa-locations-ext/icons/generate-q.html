@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Icon Generator — QA Locations (Q variant)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #061929;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      gap: 28px;
+    }
+    h1   { font-size: 1.1rem; font-weight: 700; color: #7dd3fc; margin: 0; }
+    p    { margin: 0; font-size: 0.85rem; color: #9aa4b2; text-align: center; line-height: 1.6; }
+    code { background: #0c2340; padding: 1px 6px; border-radius: 4px; font-size: 0.82rem; color: #7dd3fc; }
+
+    .previews {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    canvas {
+      border-radius: 8px;
+      image-rendering: pixelated;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+    }
+    .size-label { font-size: 0.75rem; color: #9aa4b2; }
+    .dl-btn {
+      padding: 5px 12px;
+      background: #0c2d4f;
+      color: #bae6fd;
+      border: 1px solid #0284c7;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .dl-btn:hover { background: #0284c7; color: #fff; }
+
+    #dl-all {
+      padding: 10px 30px;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    #dl-all:hover { background: #38bdf8; color: #0c2340; }
+
+    #status { font-size: 0.82rem; color: #34d399; min-height: 1.2em; }
+
+    .badge {
+      display: inline-block;
+      background: #0c2d4f;
+      border: 1px solid #0284c7;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.75rem;
+      color: #7dd3fc;
+      margin-bottom: -8px;
+    }
+  </style>
+</head>
+<body>
+
+  <span class="badge">📍 QA Locations — Q variant</span>
+  <h1>Icon Generator</h1>
+  <p>
+    Open this file in Chrome (works on <code>file://</code> — no server needed).<br/>
+    Click <strong>Download All 4 PNGs</strong>, then move them into <code>icons/</code> and reload the extension.
+  </p>
+
+  <div class="previews" id="previews"></div>
+  <p id="status"></p>
+  <button id="dl-all">⬇ Download All 4 PNGs</button>
+
+  <script>
+    // Bold Q glyph icon — same sky-to-ocean blue palette
+    // The Q IS the icon: thick amber-gold annular ring + fat diagonal tail that reads as a pointer
+    const SVG_SRC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="QA Locations icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <linearGradient id="qGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#fde68a"/>
+      <stop offset="55%"  stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <rect width="128" height="128" rx="26"/>
+    </clipPath>
+    <filter id="qShadow" x="-20%" y="-15%" width="160%" height="160%">
+      <feDropShadow dx="1" dy="3" stdDeviation="5" flood-color="rgba(0,0,0,0.45)"/>
+    </filter>
+  </defs>
+
+  <rect width="128" height="128" rx="26" fill="url(#bg)"/>
+
+  <g clip-path="url(#clip)" fill="none" stroke="white" stroke-width="1.4" opacity="0.07">
+    <circle cx="57" cy="48" r="22"/>
+    <circle cx="57" cy="48" r="36"/>
+    <circle cx="57" cy="48" r="50"/>
+    <circle cx="57" cy="48" r="64"/>
+  </g>
+
+  <g filter="url(#qShadow)" clip-path="url(#clip)">
+    <path fill-rule="evenodd" fill="url(#qGrad)"
+      d="M 24,48 A33,33 0 1,0 90,48 A33,33 0 1,0 24,48 Z
+         M 38,48 A19,19 0 1,0 76,48 A19,19 0 1,0 38,48 Z"/>
+    <line x1="78" y1="73" x2="104" y2="100"
+          stroke="#f59e0b"
+          stroke-width="14"
+          stroke-linecap="round"/>
+  </g>
+
+  <path d="M 24,48 A33,33 0 0,1 57,15"
+        fill="none"
+        stroke="rgba(255,255,255,0.38)"
+        stroke-width="7"
+        stroke-linecap="round"
+        clip-path="url(#clip)"/>
+
+  <circle cx="57" cy="48" r="19"
+          fill="none"
+          stroke="rgba(255,255,255,0.18)"
+          stroke-width="1.5"/>
+</svg>`;
+
+    const SIZES    = [16, 32, 48, 128];
+    const canvases = {};
+
+    function svgToImage(svgStr, size) {
+      return new Promise((resolve, reject) => {
+        const blob = new Blob([svgStr], { type: "image/svg+xml" });
+        const url  = URL.createObjectURL(blob);
+        const img  = new Image(size, size);
+        img.onload  = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    async function renderCanvas(size) {
+      const canvas  = document.createElement("canvas");
+      canvas.width  = size;
+      canvas.height = size;
+      const img = await svgToImage(SVG_SRC, size);
+      canvas.getContext("2d").drawImage(img, 0, 0, size, size);
+      return canvas;
+    }
+
+    function download(canvas, filename) {
+      const a    = document.createElement("a");
+      a.download = filename;
+      a.href     = canvas.toDataURL("image/png");
+      a.click();
+    }
+
+    async function init() {
+      const container = document.getElementById("previews");
+
+      for (const size of SIZES) {
+        const canvas   = await renderCanvas(size);
+        canvases[size] = canvas;
+
+        const display       = Math.max(size, 80);
+        canvas.style.width  = display + "px";
+        canvas.style.height = display + "px";
+
+        const label       = document.createElement("span");
+        label.className   = "size-label";
+        label.textContent = `${size} × ${size}`;
+
+        const btn       = document.createElement("button");
+        btn.className   = "dl-btn";
+        btn.textContent = "Download";
+        btn.onclick     = () => download(canvas, `icon${size}.png`);
+
+        const item      = document.createElement("div");
+        item.className  = "preview-item";
+        item.append(canvas, label, btn);
+        container.append(item);
+      }
+
+      document.getElementById("dl-all").onclick = () => {
+        for (const s of SIZES) download(canvases[s], `icon${s}.png`);
+        document.getElementById("status").textContent =
+          "✓ Done! Move the 4 PNGs into icons/ and reload the extension.";
+      };
+    }
+
+    init().catch(err => {
+      document.getElementById("status").textContent = "❌ " + (err.message ?? err);
+    });
+  </script>
+</body>
+</html>

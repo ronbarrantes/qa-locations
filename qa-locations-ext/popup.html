@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QA Locations MVP</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="designs.css" />
   </head>
   <body>
     <main>
@@ -124,6 +125,28 @@
         <button id="add-group" type="button" class="secondary">
           Add Column
         </button>
+
+        <div class="design-section">
+          <label class="design-section-label">Design</label>
+          <div class="design-cards" id="design-cards">
+            <button class="design-card" data-design="default" type="button" aria-pressed="false">
+              <span class="design-card-swatch"></span>
+              <span class="design-card-name">Default</span>
+            </button>
+            <button class="design-card" data-design="walmart" type="button" aria-pressed="false">
+              <span class="design-card-swatch"></span>
+              <span class="design-card-name">Walmart</span>
+            </button>
+            <button class="design-card" data-design="glass" type="button" aria-pressed="false">
+              <span class="design-card-swatch"></span>
+              <span class="design-card-name">Glass</span>
+            </button>
+            <button class="design-card" data-design="neon" type="button" aria-pressed="false">
+              <span class="design-card-swatch"></span>
+              <span class="design-card-name">Neon</span>
+            </button>
+          </div>
+        </div>
 
         <div class="settings-grid">
           <div>

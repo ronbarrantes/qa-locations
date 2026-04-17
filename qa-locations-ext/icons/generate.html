@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Icon Generator — QA Locations</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #061929;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      gap: 28px;
+    }
+    h1   { font-size: 1.1rem; font-weight: 700; color: #7dd3fc; margin: 0; }
+    p    { margin: 0; font-size: 0.85rem; color: #9aa4b2; text-align: center; line-height: 1.6; }
+    code { background: #0c2340; padding: 1px 6px; border-radius: 4px; font-size: 0.82rem; color: #7dd3fc; }
+
+    .previews {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    canvas {
+      border-radius: 8px;
+      image-rendering: pixelated;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.55);
+    }
+    .size-label { font-size: 0.75rem; color: #9aa4b2; }
+    .dl-btn {
+      padding: 5px 12px;
+      background: #0c2d4f;
+      color: #bae6fd;
+      border: 1px solid #0284c7;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .dl-btn:hover { background: #0284c7; color: #fff; }
+
+    #dl-all {
+      padding: 10px 30px;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    #dl-all:hover { background: #38bdf8; color: #0c2340; }
+
+    #status { font-size: 0.82rem; color: #34d399; min-height: 1.2em; }
+
+    .badge {
+      display: inline-block;
+      background: #0c2d4f;
+      border: 1px solid #0284c7;
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.75rem;
+      color: #7dd3fc;
+      margin-bottom: -8px;
+    }
+  </style>
+</head>
+<body>
+
+  <span class="badge">📍 QA Locations Extension</span>
+  <h1>Icon Generator</h1>
+  <p>
+    Open this file in Chrome (works on <code>file://</code> — no server needed).<br/>
+    Click <strong>Download All 4 PNGs</strong>, then move them into <code>icons/</code> and reload the extension.
+  </p>
+
+  <div class="previews" id="previews"></div>
+  <p id="status"></p>
+  <button id="dl-all">⬇ Download All 4 PNGs</button>
+
+  <script>
+    // ─── SVG source embedded — no fetch(), no node, no imagemagick ───────────
+    // Deep Walmart blue bg (blue.100 #0053e2 → #001564) — max contrast base
+    // Spark yellow pin (spark.100 #ffc220) — A11y-compliant on deep blue
+    // Near-black inner hole so white crosshairs really pop
+    const SVG_SRC = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="QA Locations icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0053e2"/>
+      <stop offset="100%" stop-color="#001564"/>
+    </linearGradient>
+    <linearGradient id="pinFill" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%"   stop-color="#ffe066"/>
+      <stop offset="50%"  stop-color="#ffc220"/>
+      <stop offset="100%" stop-color="#995213"/>
+    </linearGradient>
+    <linearGradient id="pinGloss" x1="0" y1="0" x2="0.5" y2="0.7">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.45)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <linearGradient id="holeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#001a6e"/>
+      <stop offset="100%" stop-color="#00091f"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <rect width="128" height="128"/>
+    </clipPath>
+    <filter id="pinShadow" x="-25%" y="-10%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="rgba(0,0,0,0.38)"/>
+    </filter>
+  </defs>
+
+  <rect width="128" height="128" fill="url(#bg)"/>
+
+  <g clip-path="url(#clip)" fill="none" stroke="white" stroke-width="1.4" opacity="0.13">
+    <circle cx="64" cy="48" r="18"/>
+    <circle cx="64" cy="48" r="30"/>
+    <circle cx="64" cy="48" r="42"/>
+    <circle cx="64" cy="48" r="54"/>
+    <circle cx="64" cy="48" r="66"/>
+  </g>
+
+  <ellipse cx="64" cy="113" rx="19" ry="5"
+           fill="rgba(0,0,0,0.25)" clip-path="url(#clip)"/>
+
+  <path d="M64 109 C58 95 22 72 22 47 A42 42 0 1 1 106 47 C106 72 70 95 64 109 Z"
+        fill="url(#pinFill)"
+        filter="url(#pinShadow)"
+        stroke="rgba(255,255,255,0.40)"
+        stroke-width="2.5"
+        clip-path="url(#clip)"/>
+
+  <path d="M64 109 C58 95 22 72 22 47 A42 42 0 1 1 106 47 C106 72 70 95 64 109 Z"
+        fill="url(#pinGloss)"
+        opacity="0.45"
+        clip-path="url(#clip)"/>
+
+  <circle cx="64" cy="47" r="17"
+          fill="url(#holeGrad)"
+          stroke="rgba(255,255,255,0.22)"
+          stroke-width="2"/>
+
+  <g stroke="rgba(255,255,255,0.90)" stroke-width="2" stroke-linecap="round">
+    <line x1="64" y1="36" x2="64" y2="41"/>
+    <line x1="64" y1="53" x2="64" y2="58"/>
+    <line x1="53" y1="47" x2="58" y2="47"/>
+    <line x1="70" y1="47" x2="75" y2="47"/>
+  </g>
+
+  <circle cx="64" cy="47" r="5.5" fill="white" opacity="0.95"/>
+</svg>`;
+
+    // ─── Sizes to generate ───────────────────────────────────────────────────
+    const SIZES    = [16, 32, 48, 128];
+    const canvases = {};
+
+    function svgToImage(svgStr, size) {
+      return new Promise((resolve, reject) => {
+        const blob = new Blob([svgStr], { type: "image/svg+xml" });
+        const url  = URL.createObjectURL(blob);
+        const img  = new Image(size, size);
+        img.onload  = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    async function renderCanvas(size) {
+      const canvas  = document.createElement("canvas");
+      canvas.width  = size;
+      canvas.height = size;
+      const img = await svgToImage(SVG_SRC, size);
+      canvas.getContext("2d").drawImage(img, 0, 0, size, size);
+      return canvas;
+    }
+
+    function download(canvas, filename) {
+      const a    = document.createElement("a");
+      a.download = filename;
+      a.href     = canvas.toDataURL("image/png");
+      a.click();
+    }
+
+    async function init() {
+      const container = document.getElementById("previews");
+
+      for (const size of SIZES) {
+        const canvas   = await renderCanvas(size);
+        canvases[size] = canvas;
+
+        const display       = Math.max(size, 80);
+        canvas.style.width  = display + "px";
+        canvas.style.height = display + "px";
+
+        const label       = document.createElement("span");
+        label.className   = "size-label";
+        label.textContent = `${size} × ${size}`;
+
+        const btn       = document.createElement("button");
+        btn.className   = "dl-btn";
+        btn.textContent = "Download";
+        btn.onclick     = () => download(canvas, `icon${size}.png`);
+
+        const item      = document.createElement("div");
+        item.className  = "preview-item";
+        item.append(canvas, label, btn);
+        container.append(item);
+      }
+
+      document.getElementById("dl-all").onclick = () => {
+        for (const s of SIZES) download(canvases[s], `icon${s}.png`);
+        document.getElementById("status").textContent =
+          "✓ Done! Move the 4 PNGs into icons/ and reload the extension.";
+      };
+    }
+
+    init().catch(err => {
+      document.getElementById("status").textContent = "❌ " + (err.message ?? err);
+    });
+  </script>
+</body>
+</html>

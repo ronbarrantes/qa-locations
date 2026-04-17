@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="QA Locations icon">
+  <defs>
+    <!-- Same sky-to-ocean blue -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+
+    <!-- Amber-gold for the Q glyph -->
+    <linearGradient id="qGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#fde68a"/>
+      <stop offset="55%"  stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <clipPath id="clip">
+      <rect width="128" height="128" rx="26"/>
+    </clipPath>
+
+    <filter id="qShadow" x="-20%" y="-15%" width="160%" height="160%">
+      <feDropShadow dx="1" dy="3" stdDeviation="5" flood-color="rgba(0,0,0,0.45)"/>
+    </filter>
+  </defs>
+
+  <!-- ─── Background ─── -->
+  <rect width="128" height="128" rx="26" fill="url(#bg)"/>
+
+  <!-- ─── Topographic rings centred on the Q circle ─── -->
+  <g clip-path="url(#clip)" fill="none" stroke="white" stroke-width="1.4" opacity="0.07">
+    <circle cx="57" cy="48" r="22"/>
+    <circle cx="57" cy="48" r="36"/>
+    <circle cx="57" cy="48" r="50"/>
+    <circle cx="57" cy="48" r="64"/>
+  </g>
+
+  <!-- ─── Q glyph ─── -->
+  <g filter="url(#qShadow)" clip-path="url(#clip)">
+
+    <!--
+      The Q is two shapes:
+        1. An annular ring  (outer r=33, inner r=19) — the O of the Q
+           Built as a compound evenodd path so we get a true hole.
+        2. A fat rounded tail stroke — exits at ~50° and sweeps to the bottom-right.
+           Ring wall width = 14.  Tail stroke-width = 14.  They match, so it reads
+           as one continuous letter at every size down to 16×16.
+    -->
+
+    <!-- Q ring: outer circle CW, inner circle CCW → evenodd punches the hole -->
+    <path fill-rule="evenodd" fill="url(#qGrad)"
+      d="M 24,48 A33,33 0 1,0 90,48 A33,33 0 1,0 24,48 Z
+         M 38,48 A19,19 0 1,0 76,48 A19,19 0 1,0 38,48 Z"/>
+
+    <!-- Q tail — same amber-gold, exits from ~50° on the ring edge, sweeps SE -->
+    <!-- Entry point: 57 + 33·cos50° ≈ 78,  48 + 33·sin50° ≈ 73              -->
+    <!-- Tip: continue ~32 px in same direction                                 -->
+    <line x1="78" y1="73" x2="104" y2="100"
+          stroke="#f59e0b"
+          stroke-width="14"
+          stroke-linecap="round"/>
+
+  </g>
+
+  <!-- ─── Gloss: bright arc on the upper-left quarter of the Q ring ─── -->
+  <!--  From leftmost point (24, 48) clockwise to the top (57, 15)       -->
+  <path d="M 24,48 A33,33 0 0,1 57,15"
+        fill="none"
+        stroke="rgba(255,255,255,0.38)"
+        stroke-width="7"
+        stroke-linecap="round"
+        clip-path="url(#clip)"/>
+
+  <!-- ─── Inner ring rim highlight ─── -->
+  <circle cx="57" cy="48" r="19"
+          fill="none"
+          stroke="rgba(255,255,255,0.18)"
+          stroke-width="1.5"/>
+</svg>

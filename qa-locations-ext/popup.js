@@ -23,6 +23,8 @@ const INPUTS_STORAGE_KEY = "qa-locations-inputs-v1";
 const VIEW_STORAGE_KEY = "qa-locations-view-v1";
 const HOLD_VIEW_KEY = "qa-locations-hold-view-v1";
 const THEME_STORAGE_KEY = "qa-locations-theme-v1";
+const DESIGN_STORAGE_KEY = "qa-locations-design-v1";
+const VALID_DESIGNS = ["default", "walmart", "glass", "neon"];
 const DEFAULT_SETTINGS = {
   groups: [
     { title: "Pallets", values: ["a", "b", "c", "lud", "prm", "slp"] },
@@ -79,6 +81,7 @@ const columnGapInput = document.getElementById("column-gap");
 const themeModeSelect = document.getElementById("theme-mode");
 const colorsModeToggle = document.getElementById("colors-mode");
 const holdViewToggle = document.getElementById("hold-view");
+const designCards = document.querySelectorAll(".design-card");
 
 let settingsState = loadSettings();
 let holdViewEnabled = false;
@@ -86,6 +89,7 @@ let priorityEntriesState = [];
 let locationsState = "";
 let themeMediaQuery = null;
 let currentThemeMode = "system";
+let currentDesign = "default";
 
 function getLocationsText() {
   return locationsInput ? locationsInput.value : locationsState;
@@ -531,6 +535,7 @@ function resetForm() {
 
 function openSettings() {
   populateSettingsUI(settingsState);
+  updateDesignCards(currentDesign);
   showView("settings");
 }
 
@@ -774,6 +779,30 @@ function applyTheme(themeMode) {
   }
 }
 
+function getDesignPreference() {
+  const saved = window.localStorage.getItem(DESIGN_STORAGE_KEY);
+  return VALID_DESIGNS.includes(saved) ? saved : "default";
+}
+
+function applyDesign(design) {
+  const next = VALID_DESIGNS.includes(design) ? design : "default";
+  currentDesign = next;
+  window.localStorage.setItem(DESIGN_STORAGE_KEY, next);
+  if (next === "default") {
+    document.documentElement.removeAttribute("data-design");
+  } else {
+    document.documentElement.setAttribute("data-design", next);
+  }
+  updateDesignCards(next);
+}
+
+function updateDesignCards(design) {
+  designCards.forEach((card) => {
+    const isActive = card.dataset.design === design;
+    card.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
 function applyStaticIcons() {
   if (openSettingsBtn) {
     openSettingsBtn.replaceChildren(createGearIcon());
@@ -869,6 +898,12 @@ holdViewToggle?.addEventListener("change", (event) => {
   setHoldViewEnabled(Boolean(event.target.checked));
 });
 
+designCards.forEach((card) => {
+  card.addEventListener("click", () => {
+    applyDesign(card.dataset.design);
+  });
+});
+
 function handlePopupQueryActions() {
   const params = new URLSearchParams(window.location.search);
   const shouldAutoCreate = params.get("autocreate") === "1";
@@ -884,6 +919,7 @@ function handlePopupQueryActions() {
 
 async function init() {
   applyTheme(getThemePreference());
+  applyDesign(getDesignPreference());
   await loadInputs();
 
   if (handlePopupQueryActions()) {

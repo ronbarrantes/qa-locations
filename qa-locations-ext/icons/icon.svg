@@ -1,32 +1,93 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="QA Locations icon">
   <defs>
+    <!-- Deep Walmart blue — strong contrast base -->
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1d4ed8" />
-      <stop offset="100%" stop-color="#1e3a8a" />
+      <stop offset="0%"   stop-color="#0053e2"/>
+      <stop offset="100%" stop-color="#001564"/>
     </linearGradient>
+
+    <!-- Pin: Walmart spark yellow — punchy contrast on deep blue -->
+    <linearGradient id="pinFill" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%"   stop-color="#ffe066"/>
+      <stop offset="50%"  stop-color="#ffc220"/>
+      <stop offset="100%" stop-color="#995213"/>
+    </linearGradient>
+
+    <!-- Gloss highlight on the pin (upper-left shine) -->
+    <linearGradient id="pinGloss" x1="0" y1="0" x2="0.5" y2="0.7">
+      <stop offset="0%"   stop-color="rgba(255,255,255,0.45)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+
+    <!-- Inner hole — very dark so white crosshairs pop -->
+    <linearGradient id="holeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#001a6e"/>
+      <stop offset="100%" stop-color="#00091f"/>
+    </linearGradient>
+
+    <!-- Clip to full canvas so topo rings don't bleed out — no rx, let the OS round -->
+    <clipPath id="clip">
+      <rect width="128" height="128"/>
+    </clipPath>
+
+    <!-- Soft drop shadow for pin depth -->
+    <filter id="pinShadow" x="-25%" y="-10%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="rgba(0,0,0,0.38)"/>
+    </filter>
   </defs>
 
-  <rect x="0" y="0" width="128" height="128" fill="url(#bg)" />
+  <!-- ─── Background ─── -->
+  <!-- Full-bleed background — no rx, let the OS/browser handle corner rounding -->
+  <rect width="128" height="128" fill="url(#bg)"/>
 
-  <!-- Stylized Q -->
-  <circle cx="56" cy="58" r="24" fill="none" stroke="#facc15" stroke-width="10" stroke-linecap="round" />
-  <path d="M67 69 L83 85" fill="none" stroke="#facc15" stroke-width="10" stroke-linecap="round" />
+  <!-- ─── Topographic rings — subtle depth, evokes a map ─── -->
+  <g clip-path="url(#clip)" fill="none" stroke="white" stroke-width="1.4" opacity="0.13">
+    <circle cx="64" cy="48" r="18"/>
+    <circle cx="64" cy="48" r="30"/>
+    <circle cx="64" cy="48" r="42"/>
+    <circle cx="64" cy="48" r="54"/>
+    <circle cx="64" cy="48" r="66"/>
+  </g>
 
-  <!-- Check mark -->
-  <path
-    d="M72 53 L89 65 L111 42"
-    fill="none"
-    stroke="#1d4ed8"
-    stroke-width="11"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
-  <path
-    d="M79 53 L91 65 L111 42"
-    fill="none"
-    stroke="#facc15"
-    stroke-width="10"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <!-- ─── Pin drop shadow (painted separately so it clips nicely) ─── -->
+  <ellipse cx="64" cy="113" rx="19" ry="5"
+           fill="rgba(0,0,0,0.25)" clip-path="url(#clip)"/>
+
+  <!-- ─── Location pin teardrop ─── -->
+  <!-- Main fill -->
+  <path d="M64 109
+           C58 95 22 72 22 47
+           A42 42 0 1 1 106 47
+           C106 72 70 95 64 109 Z"
+        fill="url(#pinFill)"
+        filter="url(#pinShadow)"
+        stroke="rgba(255,255,255,0.40)"
+        stroke-width="2.5"
+        clip-path="url(#clip)"/>
+
+  <!-- Gloss overlay — upper-left quarter only -->
+  <path d="M64 109
+           C58 95 22 72 22 47
+           A42 42 0 1 1 106 47
+           C106 72 70 95 64 109 Z"
+        fill="url(#pinGloss)"
+        opacity="0.45"
+        clip-path="url(#clip)"/>
+
+  <!-- ─── Inner hole ─── -->
+  <circle cx="64" cy="47" r="17"
+          fill="url(#holeGrad)"
+          stroke="rgba(255,255,255,0.22)"
+          stroke-width="2"/>
+
+  <!-- ─── Crosshair lines inside hole (tiny navigational detail) ─── -->
+  <g stroke="rgba(255,255,255,0.90)" stroke-width="2" stroke-linecap="round">
+    <line x1="64" y1="36" x2="64" y2="41"/>
+    <line x1="64" y1="53" x2="64" y2="58"/>
+    <line x1="53" y1="47" x2="58" y2="47"/>
+    <line x1="70" y1="47" x2="75" y2="47"/>
+  </g>
+
+  <!-- ─── Center dot ─── -->
+  <circle cx="64" cy="47" r="5.5" fill="white" opacity="0.95"/>
 </svg>
